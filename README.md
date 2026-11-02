@@ -36,6 +36,68 @@ Casebook is a full-stack multiplayer detective game where every player is a dete
 
 ## Routes
 
+| Method | Route | Description | Access |
+|--------|-------|-------------|--------|
+| GET | `/` | Home page | Public |
+
+### Auth (`/auth`)
+| Method | Route | Description | Access |
+|--------|-------|-------------|--------|
+| GET | `/auth/sign-up` | Sign-up form | Public |
+| POST | `/auth/sign-up` | Create account | Public |
+| GET | `/auth/sign-in` | Sign-in form | Public |
+| POST | `/auth/sign-in` | Sign in | Public |
+| GET | `/auth/sign-out` | Sign out | Signed in |
+
+### Teams (`/team`)
+| Method | Route | Description | Access |
+|--------|-------|-------------|--------|
+| GET | `/team` | List teams | Signed in |
+| POST | `/team` | Create a team | Signed in |
+| PUT | `/team/:tID/join` | Join a team | Signed in |
+| PUT | `/team/leave` | Leave current team | Team member |
+
+### Cases (`/case`)
+| Method | Route | Description | Access |
+|--------|-------|-------------|--------|
+| GET | `/case` | List cases (optional `?status=` and `?difficulty=` filters) | Public |
+| GET | `/case/:cID` | View case file (locked evidence and solution hidden) | Signed in |
+| POST | `/case/:cID/solve` | Submit a suspect as the culprit | Team member |
+| GET | `/case/new` | New case form | Game Master |
+| POST | `/case` | Create case | Game Master |
+| GET | `/case/:cID/update` | Edit case form | Game Master |
+| PUT | `/case/:cID` | Update case | Game Master |
+| DELETE | `/case/:cID` | Delete case with its suspects and evidence | Game Master |
+
+### Suspects (`/suspect`)
+| Method | Route | Description | Access |
+|--------|-------|-------------|--------|
+| POST | `/suspect/:cID` | Add a suspect to case `cID` | Game Master |
+| PUT | `/suspect/:sID` | Edit suspect | Game Master |
+| DELETE | `/suspect/:sID` | Delete suspect | Game Master |
+
+### Evidence (`/evidence`)
+| Method | Route | Description | Access |
+|--------|-------|-------------|--------|
+| POST | `/evidence/:cID` | Add evidence to case `cID` | Game Master |
+| PUT | `/evidence/:eID` | Edit evidence | Game Master |
+| PUT | `/evidence/:eID/toggle-lock` | Lock or unlock evidence | Game Master |
+| DELETE | `/evidence/:eID` | Delete evidence | Game Master |
+
+### Notes (`/note`)
+| Method | Route | Description | Access |
+|--------|-------|-------------|--------|
+| POST | `/note/:cID` | Add a note to case `cID` | Signed in |
+| PUT | `/note/:nID` | Edit own note | Note owner |
+| DELETE | `/note/:nID` | Delete own note | Note owner |
+
+### Chat (`/chat`)
+| Method | Route | Description | Access |
+|--------|-------|-------------|--------|
+| GET | `/chat` | Team chat page | Team member |
+| POST | `/chat` | Send a message (also broadcast with Socket.io) | Team member |
+| DELETE | `/chat/:mID` | Delete own message | Message owner |
+
 ## Features
 
 
