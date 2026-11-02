@@ -61,11 +61,8 @@ Casebook is a full-stack multiplayer detective game where every player is a dete
 | Method | Route | Description | Access |
 |--------|-------|-------------|--------|
 | GET | `/case` | List cases (optional `?status=` and `?difficulty=` filters) | Public |
-| GET | `/case/:cID` | View case file (locked evidence and solution hidden) | Signed in |
-| POST | `/case/:cID/solve` | Submit a suspect as the culprit | Team member |
-| GET | `/case/new` | New case form | Game Master |
 | POST | `/case` | Create case | Game Master |
-| GET | `/case/:cID/update` | Edit case form | Game Master |
+| GET | `/case/:cID` | View case file (locked evidence and solution hidden) | Signed in |
 | PUT | `/case/:cID` | Update case | Game Master |
 | DELETE | `/case/:cID` | Delete case with its suspects and evidence | Game Master |
 
@@ -90,6 +87,13 @@ Casebook is a full-stack multiplayer detective game where every player is a dete
 | POST | `/note/:cID` | Add a note to case `cID` | Signed in |
 | PUT | `/note/:nID` | Edit own note | Note owner |
 | DELETE | `/note/:nID` | Delete own note | Note owner |
+
+### Solve Attempts (`/solve`)
+| Method | Route | Description | Access |
+|--------|-------|-------------|--------|
+| GET | `/solve` | View all attempts from the team | Game Master |
+| GET | `/solve/:cID` | View your team's attempts on case `cID` | Team member |
+| POST | `/solve/:cID` | Submit a suspect as the culprit for case `cID` | Team member |
 
 ### Chat (`/chat`)
 | Method | Route | Description | Access |
