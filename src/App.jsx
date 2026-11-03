@@ -7,6 +7,7 @@ import SignInPage from "./pages/SigninPage";
 import Dashboard from "./pages/Dashboard";
 import { logout } from "./services/authService";
 import AllCases from "./pages/case/AllCases";
+import CaseDetail from "./pages/case/CaseDetails";
 
 function App() {
   function  getUserFromToken (){
@@ -37,6 +38,7 @@ function App() {
           element={user ? <Dashboard user={user} /> : <Navigate to="/sign-in" />}
         />
         <Route path="/cases" element={<AllCases/>}/>
+        <Route path="/case/:cId" element={<CaseDetail  user={user} />}/>
       </Routes>
     </div>
   );
