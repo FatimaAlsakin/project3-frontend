@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import { logout } from "./services/authService";
 import AllCases from "./pages/case/AllCases";
 import CaseDetail from "./pages/case/CaseDetails";
+import CreateCase from "./pages/case/CreateCase";
 
 function App() {
   function  getUserFromToken (){
@@ -39,6 +40,7 @@ function App() {
         />
         <Route path="/cases" element={<AllCases/>}/>
         <Route path="/case/:cId" element={<CaseDetail  user={user} />}/>
+        <Route path="/case/create" element={user ? <CreateCase user={user} /> : <Navigate to="/sign-in" />} />
       </Routes>
     </div>
   );
