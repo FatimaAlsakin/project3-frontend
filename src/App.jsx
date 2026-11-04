@@ -6,6 +6,9 @@ import Homepage from "./pages/Homepage";
 import SignInPage from "./pages/SigninPage";
 import Dashboard from "./pages/Dashboard";
 import { logout } from "./services/authService";
+import AllTeams from "./pages/Teams/AllTeams";
+import CreateTeam from "./pages/Teams/CreateTeam"
+import MyTeam from "./pages/Teams/MyTeam"
 import AllCases from "./pages/case/AllCases";
 import CaseDetail from "./pages/case/CaseDetails";
 import CreateCase from "./pages/case/CreateCase";
@@ -38,6 +41,9 @@ function App() {
           path="/dashboard"
           element={user ? <Dashboard user={user} /> : <Navigate to="/sign-in" />}
         />
+        <Route path="/teams" element={user ? <AllTeams /> : <Navigate to="/sign-in" />} />
+        <Route path="/teams/create" element={user ? <CreateTeam /> : <Navigate to="/sign-in" />} />
+        <Route path="/teams/my-team" element={user ? <MyTeam /> : <Navigate to="/sign-in" />} />
         <Route path="/cases" element={<AllCases/>}/>
         <Route path="/case/:cId" element={<CaseDetail  user={user} />}/>
         <Route path="/case/create" element={user ? <CreateCase user={user} /> : <Navigate to="/sign-in" />} />
