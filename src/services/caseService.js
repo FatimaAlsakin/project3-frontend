@@ -35,13 +35,13 @@ export async function postSuspect(cId, newSuspect) {
     return response.data
 }
 
-export async function putSuspect(cId, updatedSuspect) {
-    const response = await api.put(`/cases/${cId}/suspects` , updatedSuspect)
+export async function putSuspect(cId, sId, updatedSuspect) {
+    const response = await api.put(`/cases/${cId}/suspects/${sId}` , updatedSuspect)
     return response.data
 }
 
-export async function delSuspect(cId) {
-    const response = await api.delete(`/cases/${cId}/suspects`)
+export async function delSuspect(cId, sId) {
+    const response = await api.delete(`/cases/${cId}/suspects/${sId}`)
     return response.data    
 }
 

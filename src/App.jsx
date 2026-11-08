@@ -12,6 +12,7 @@ import MyTeam from "./pages/Teams/MyTeam"
 import AllCases from "./pages/case/AllCases";
 import CaseDetail from "./pages/case/CaseDetails";
 import CreateCase from "./pages/case/CreateCase";
+import EditCase from "./pages/case/EditCase";
 
 function App() {
   function  getUserFromToken (){
@@ -55,6 +56,7 @@ function App() {
         <Route path="/cases" element={<AllCases/>}/>
         <Route path="/case/:cId" element={<CaseDetail  user={user} />}/>
         <Route path="/case/create" element={user ? <CreateCase user={user} /> : <Navigate to="/sign-in" />} />
+        <Route path="/case/:cId/edit" element={user ? <EditCase /> : <Navigate to="/sign-in" />} />
       </Routes>
     </div>
   );
