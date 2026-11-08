@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useParams } from "react-router"
+import { Link, useParams, useNavigate } from "react-router"
 import { getCase , delCase } from '../../services/caseService'
 
 function CaseDetails({user}) {
@@ -9,6 +9,7 @@ function CaseDetails({user}) {
   const [ evidance, setEvidence ] = useState([])
 
   const { cId } = useParams()
+  const navigate = useNavigate()
 
   async function loadCase(cId) {
     const response = await getCase(cId)
@@ -28,7 +29,7 @@ function CaseDetails({user}) {
 
   return (
     <>
-    {Case ? 
+    {Case ?
     <><h1>{Case.title} </h1>
     <h3>{Case.description}</h3>
     <h3>Suspects:</h3>
@@ -53,7 +54,7 @@ function CaseDetails({user}) {
       <button><Link onClick={() => deleteCase(cId)}>Delete Case</Link></button>
       </>
     ) : null}
-    
+
     </>
     : null }
 

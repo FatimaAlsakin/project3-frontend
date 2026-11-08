@@ -19,7 +19,15 @@ function App() {
 
     if (!token) return null;
 
-    return JSON.parse(atob(token.split(".")[1]));
+    const payload = JSON.parse(atob(token.split(".")[1]));
+
+    // Token expired (exp is in seconds) -> treat as logged out
+    if (payload.exp * 1000 < Date.now()) {
+      localStorage.removeItem("token");
+      return null;
+    }
+
+    return payload;
   };
 
 
