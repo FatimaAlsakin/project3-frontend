@@ -71,7 +71,8 @@ function CreateCase() {
 
     function handleSuspectChange(index, event){
         const updatedSuspects = [...suspects]
-        updatedSuspects[index] = {...updatedSuspects[index], [event.target.name]:event.target.value}
+        const value = event.target.type === 'file' ? event.target.files[0] : event.target.value
+        updatedSuspects[index] = {...updatedSuspects[index], [event.target.name]:value}
         setSuspects(updatedSuspects)
     }
 
@@ -80,7 +81,9 @@ function CreateCase() {
     }
 
     function handleEvidenceChange(index, event){
-        const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value
+        const value = event.target.type === 'checkbox' ? event.target.checked
+            : event.target.type === 'file' ? event.target.files[0]
+            : event.target.value
         const updatedEvidence = [...evidence]
         updatedEvidence[index] = {...updatedEvidence[index], [event.target.name]:value}
         setEvidence(updatedEvidence)
@@ -185,6 +188,15 @@ function CreateCase() {
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.alibi}/>
                     <br />
+                    <label htmlFor={`suspectImage${index}`}>Photo: </label>
+                    <input
+                    type="file"
+                    id={`suspectImage${index}`}
+                    name="image"
+                    accept="image/*"
+                    required
+                    onChange={(event) => handleSuspectChange(index, event)}/>
+                    <br />
                     <label htmlFor={`solution${index}`}>Solution Suspect: </label>
                     <input
                     type="checkbox"
@@ -219,14 +231,14 @@ function CreateCase() {
                     onChange={(event) => handleEvidenceChange(index, event)}
                     value={evidenceItem.title}/>
                     <br />
-                    <label htmlFor={`imageUrl${index}`}>Image URL: </label>
+                    <label htmlFor={`image${index}`}>Image: </label>
                     <input
-                    type="url"
-                    id={`imageUrl${index}`}
-                    name="imageUrl"
+                    type="file"
+                    id={`image${index}`}
+                    name="image"
+                    accept="image/*"
                     required
-                    onChange={(event) => handleEvidenceChange(index, event)}
-                    value={evidenceItem.imageUrl}/>
+                    onChange={(event) => handleEvidenceChange(index, event)}/>
                     <br />
                     <label htmlFor={`details${index}`}>Details: </label>
                     <textarea

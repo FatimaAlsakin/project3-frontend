@@ -1,4 +1,5 @@
 import api from './api'
+import { toFormData } from './toFormData'
 
 export async function getCases(){
     const response = await api.get('/cases')
@@ -31,12 +32,12 @@ export async function getSuspects(cId){
 }
 
 export async function postSuspect(cId, newSuspect) {
-    const response = await api.post(`/cases/${cId}/suspects` , newSuspect)
+    const response = await api.post(`/cases/${cId}/suspects` , toFormData(newSuspect))
     return response.data
 }
 
 export async function putSuspect(cId, sId, updatedSuspect) {
-    const response = await api.put(`/cases/${cId}/suspects/${sId}` , updatedSuspect)
+    const response = await api.put(`/cases/${cId}/suspects/${sId}` , toFormData(updatedSuspect))
     return response.data
 }
 

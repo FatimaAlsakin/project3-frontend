@@ -45,7 +45,7 @@ function EditCase() {
                     status: foundCase.status
                 })
 
-                setSuspects(foundSuspects.map(({ _id, name, relation, motive, alibi }) => ({ _id, name, relation, motive, alibi })))
+                setSuspects(foundSuspects.map(({ _id, name, relation, motive, alibi, imageUrl }) => ({ _id, name, relation, motive, alibi, imageUrl })))
 
                 const solution = foundSuspects.findIndex((suspect) => suspect._id === foundCase.solutionSuspect)
                 setSolutionIndex(solution === -1 ? null : solution)
@@ -131,7 +131,8 @@ function EditCase() {
 
     function handleSuspectChange(index, event){
         const updatedSuspects = [...suspects]
-        updatedSuspects[index] = {...updatedSuspects[index], [event.target.name]:event.target.value}
+        const value = event.target.type === 'file' ? event.target.files[0] : event.target.value
+        updatedSuspects[index] = {...updatedSuspects[index], [event.target.name]:value}
         setSuspects(updatedSuspects)
     }
 
@@ -140,7 +141,9 @@ function EditCase() {
     }
 
     function handleEvidenceChange(index, event){
-        const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value
+        const value = event.target.type === 'checkbox' ? event.target.checked
+            : event.target.type === 'file' ? event.target.files[0]
+            : event.target.value
         const updatedEvidence = [...evidence]
         updatedEvidence[index] = {...updatedEvidence[index], [event.target.name]:value}
         setEvidence(updatedEvidence)
@@ -247,6 +250,19 @@ function EditCase() {
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.alibi}/>
                     <br />
+                    {suspect.imageUrl && !suspect.image && (
+                        <img src={suspect.imageUrl} alt={suspect.name} width="150" />
+                    )}
+                    <br />
+                    <label htmlFor={`suspectImage${index}`}>{suspect.imageUrl ? 'Replace Photo: ' : 'Photo: '}</label>
+                    <input
+                    type="file"
+                    id={`suspectImage${index}`}
+                    name="image"
+                    accept="image/*"
+                    required={!suspect.imageUrl}
+                    onChange={(event) => handleSuspectChange(index, event)}/>
+                    <br />
                     <label htmlFor={`solution${index}`}>Solution Suspect: </label>
                     <input
                     type="checkbox"
@@ -281,14 +297,18 @@ function EditCase() {
                     onChange={(event) => handleEvidenceChange(index, event)}
                     value={evidenceItem.title}/>
                     <br />
-                    <label htmlFor={`imageUrl${index}`}>Image URL: </label>
+                    {evidenceItem.imageUrl && !evidenceItem.image && (
+                        <img src={evidenceItem.imageUrl} alt={evidenceItem.title} width="150" />
+                    )}
+                    <br />
+                    <label htmlFor={`image${index}`}>{evidenceItem.imageUrl ? 'Replace Image: ' : 'Image: '}</label>
                     <input
-                    type="url"
-                    id={`imageUrl${index}`}
-                    name="imageUrl"
-                    required
-                    onChange={(event) => handleEvidenceChange(index, event)}
-                    value={evidenceItem.imageUrl}/>
+                    type="file"
+                    id={`image${index}`}
+                    name="image"
+                    accept="image/*"
+                    required={!evidenceItem.imageUrl}
+                    onChange={(event) => handleEvidenceChange(index, event)}/>
                     <br />
                     <label htmlFor={`details${index}`}>Details: </label>
                     <textarea

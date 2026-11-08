@@ -4,6 +4,16 @@ import { getCase , delCase } from '../../services/caseService'
 import Draggable from 'react-draggable'
 import { DraggableCore } from 'react-draggable';
 
+function DraggableCard({ children }) {
+  const cardRef = useRef(null)
+  return (
+    <Draggable nodeRef={cardRef}>
+      <div className='draggable' ref={cardRef}>
+        {children}
+      </div>
+    </Draggable>
+  )
+}
 
 function CaseDetails({user}) {
 
@@ -49,22 +59,20 @@ function CaseDetails({user}) {
 
             <h3>Suspects:</h3>
             {suspects.map((suspect) => (
-              <Draggable nodeRef={nodeRef}>
-              <div key={suspect._id} className='draggable' ref={nodeRef}>
+              <DraggableCard key={suspect._id}>
+                {suspect.imageUrl && <img src={suspect.imageUrl} alt={suspect.name} width="150" draggable={false} />}
                 <h3><b>Suspect Name:</b> {suspect.name}</h3>
                 <p><b>Relation:</b> {suspect.relation}</p>
                 <p><b>Motive:</b> {suspect.motive}</p>
                 <p><b>Alibi:</b> {suspect.alibi}</p>
-              </div>
-              </Draggable>
+              </DraggableCard>
             ))}
             <h3>Evidence:</h3>
             {evidance.map((evidence) => (
-              <Draggable nodeRef={nodeRef}>
-              <div key={evidence._id} className='draggable' ref={nodeRef}>
+              <DraggableCard key={evidence._id}>
+                {evidence.imageUrl && <img src={evidence.imageUrl} alt={evidence.title} width="150" draggable={false} />}
                 <h3><b>Evidence Title:</b> {evidence.title}</h3>
-              </div>
-              </Draggable>
+              </DraggableCard>
             ))}
 
             {user.isAdmin ? (
