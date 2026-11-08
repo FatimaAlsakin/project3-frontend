@@ -1,47 +1,47 @@
 import api from './api'
 
 export async function getCases(){
-    const response = await api.get('/case')
+    const response = await api.get('/cases')
     return response.data
 }
 
 export async function postCase(newCase) {
-    const response = await api.post('/case' , newCase)
+    const response = await api.post('/cases' , newCase)
     return response.data
 }
 
 export async function getCase(cId){
-    const response = await api.get(`/case/${cId}`)
+    const response = await api.get(`/cases/${cId}`)
     return response.data    
 }
 
 export async function putCase(cId, updatedCase) {
-    const response = await api.put(`/case/${cId}` , updatedCase)
+    const response = await api.put(`/cases/${cId}` , updatedCase)
     return response.data
 }
 
 export async function delCase(cId) {
-    const response = await api.delete(`/case/${cId}`)
+    const response = await api.delete(`/cases/${cId}`)
     return response.data    
 }
 
 export async function getSuspects(cId){
-    const response = await api.get(`/case/${cId}/suspects`)
+    const response = await api.get(`/cases/${cId}/suspects`)
     return response.data
 }
 
 export async function postSuspect(cId, newSuspect) {
-    const response = await api.post(`/case/${cId}/suspects` , newSuspect)
+    const response = await api.post(`/cases/${cId}/suspects` , newSuspect)
     return response.data
 }
 
 export async function putSuspect(cId, updatedSuspect) {
-    const response = await api.put(`/case/${cId}/suspects` , updatedSuspect)
+    const response = await api.put(`/cases/${cId}/suspects` , updatedSuspect)
     return response.data
 }
 
 export async function delSuspect(cId) {
-    const response = await api.delete(`/case/${cId}/suspects`)
+    const response = await api.delete(`/cases/${cId}/suspects`)
     return response.data    
 }
 

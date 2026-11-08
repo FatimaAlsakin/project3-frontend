@@ -9,6 +9,9 @@ import { logout } from "./services/authService";
 import AllTeams from "./pages/Teams/AllTeams";
 import CreateTeam from "./pages/Teams/CreateTeam"
 import MyTeam from "./pages/Teams/MyTeam"
+import AllCases from "./pages/case/AllCases";
+import CaseDetail from "./pages/case/CaseDetails";
+import CreateCase from "./pages/case/CreateCase";
 
 function App() {
   function  getUserFromToken (){
@@ -16,7 +19,15 @@ function App() {
 
     if (!token) return null;
 
-    return JSON.parse(atob(token.split(".")[1]));
+    const payload = JSON.parse(atob(token.split(".")[1]));
+
+    // Token expired (exp is in seconds) -> treat as logged out
+    if (payload.exp * 1000 < Date.now()) {
+      localStorage.removeItem("token");
+      return null;
+    }
+
+    return payload;
   };
 
 
@@ -41,6 +52,9 @@ function App() {
         <Route path="/teams" element={user ? <AllTeams /> : <Navigate to="/sign-in" />} />
         <Route path="/teams/create" element={user ? <CreateTeam /> : <Navigate to="/sign-in" />} />
         <Route path="/teams/my-team" element={user ? <MyTeam /> : <Navigate to="/sign-in" />} />
+        <Route path="/cases" element={<AllCases/>}/>
+        <Route path="/case/:cId" element={<CaseDetail  user={user} />}/>
+        <Route path="/case/create" element={user ? <CreateCase user={user} /> : <Navigate to="/sign-in" />} />
       </Routes>
     </div>
   );
