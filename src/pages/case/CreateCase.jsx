@@ -50,7 +50,7 @@ function CreateCase() {
     }
 
     function addEvidenceRow(){
-        setEvidence([...evidence, { label: '', title: '', type: 'image', imageUrl: '', details: '', foundAt: '', isLocked: false, suspectIndex: '' }])
+        setEvidence([...evidence, { label: '', title: '', type: 'image', imageUrl: '', details: '', foundAt: '', suspectIndex: '' }])
     }
 
     function removeSuspectRow(index){
@@ -81,9 +81,7 @@ function CreateCase() {
     }
 
     function handleEvidenceChange(index, event){
-        const value = event.target.type === 'checkbox' ? event.target.checked
-            : event.target.type === 'file' ? event.target.files[0]
-            : event.target.value
+        const value = event.target.type === 'file' ? event.target.files[0] : event.target.value
         const updatedEvidence = [...evidence]
         updatedEvidence[index] = {...updatedEvidence[index], [event.target.name]:value}
         setEvidence(updatedEvidence)
@@ -267,14 +265,6 @@ function CreateCase() {
                             <option key={suspectIndex} value={suspectIndex}>{suspect.name || `Suspect ${suspectIndex + 1}`}</option>
                         )}
                     </select>
-                    <br />
-                    <label htmlFor={`isLocked${index}`}>Locked: </label>
-                    <input
-                    type="checkbox"
-                    id={`isLocked${index}`}
-                    name="isLocked"
-                    onChange={(event) => handleEvidenceChange(index, event)}
-                    checked={evidenceItem.isLocked}/>
                     <br />
                     <button type="button" onClick={() => removeEvidenceRow(index)}>Remove Evidence</button>
                 </div>

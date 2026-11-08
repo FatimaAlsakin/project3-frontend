@@ -51,9 +51,9 @@ function EditCase() {
                 setSolutionIndex(solution === -1 ? null : solution)
 
                 // turn each evidence's suspectId back into a position in the suspects list
-                setEvidence(foundEvidence.map(({ _id, label, title, type, imageUrl, details, foundAt, isLocked, suspectId }) => {
+                setEvidence(foundEvidence.map(({ _id, label, title, type, imageUrl, details, foundAt, suspectId }) => {
                     const suspectIndex = foundSuspects.findIndex((suspect) => suspect._id === suspectId)
-                    return { _id, label, title, type, imageUrl, details, foundAt: foundAt || '', isLocked, suspectIndex: suspectIndex === -1 ? '' : String(suspectIndex) }
+                    return { _id, label, title, type, imageUrl, details, foundAt: foundAt || '', suspectIndex: suspectIndex === -1 ? '' : String(suspectIndex) }
                 }))
 
                 setOriginalSuspectIds(foundSuspects.map((suspect) => suspect._id))
@@ -110,7 +110,7 @@ function EditCase() {
     }
 
     function addEvidenceRow(){
-        setEvidence([...evidence, { label: '', title: '', type: 'image', imageUrl: '', details: '', foundAt: '', isLocked: false, suspectIndex: '' }])
+        setEvidence([...evidence, { label: '', title: '', type: 'image', imageUrl: '', details: '', foundAt: '', suspectIndex: '' }])
     }
 
     function removeSuspectRow(index){
@@ -141,9 +141,7 @@ function EditCase() {
     }
 
     function handleEvidenceChange(index, event){
-        const value = event.target.type === 'checkbox' ? event.target.checked
-            : event.target.type === 'file' ? event.target.files[0]
-            : event.target.value
+        const value = event.target.type === 'file' ? event.target.files[0] : event.target.value
         const updatedEvidence = [...evidence]
         updatedEvidence[index] = {...updatedEvidence[index], [event.target.name]:value}
         setEvidence(updatedEvidence)
@@ -337,14 +335,6 @@ function EditCase() {
                             <option key={suspectIndex} value={suspectIndex}>{suspect.name || `Suspect ${suspectIndex + 1}`}</option>
                         )}
                     </select>
-                    <br />
-                    <label htmlFor={`isLocked${index}`}>Locked: </label>
-                    <input
-                    type="checkbox"
-                    id={`isLocked${index}`}
-                    name="isLocked"
-                    onChange={(event) => handleEvidenceChange(index, event)}
-                    checked={evidenceItem.isLocked}/>
                     <br />
                     <button type="button" onClick={() => removeEvidenceRow(index)}>Remove Evidence</button>
                 </div>
