@@ -41,6 +41,9 @@ function CaseDetails({user}) {
           <div className='draggable' ref={nodeRef} >
             <h1>{Case.title}</h1>
             <h3>{Case.description}</h3>
+            <p><b>Location:</b> {Case.location}</p>
+            <p><b>Date:</b> {Case.incidentDate}</p> 
+            
           </div>
         </Draggable>
 
