@@ -8,7 +8,7 @@ function DraggableCard({ children }) {
   const cardRef = useRef(null)
   return (
     <Draggable nodeRef={cardRef}>
-      <div className='draggable' ref={cardRef}>
+      <div className='suspect-card' ref={cardRef}>
         {children}
       </div>
     </Draggable>
@@ -72,7 +72,7 @@ function CaseDetails({user}) {
       {Case ? (
         <>
         <Draggable nodeRef={nodeRef}>
-          <div className='draggable' ref={nodeRef} >
+          <div className='case-card' ref={nodeRef} >
             <h1>{Case.title}</h1>
             <h3>{Case.description}</h3>
             <p><b>Location:</b> {Case.location}</p>
