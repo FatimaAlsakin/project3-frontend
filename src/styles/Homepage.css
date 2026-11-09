@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap');
+
+body {
+    margin: 0;
+}
+
+.homepage {
+    font-family: 'Montserrat', sans-serif;
+    background-image: url('../assets/homepage.png');
+    background-color: #101014;
+    background-size: cover;
+    background-position: center;
+    color: #f2eee8;
+}
+
+.homeIntro {
+    text-align: center;
+    padding: 180px 20px;
+}
+
+.homepage h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 80px;
+    line-height: 0.9;
+    letter-spacing: -2px;
+}
+
+
+.secret {
+    color: #e92346;
+}
+
+.subtitle {
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: #d6d0c8;
+    margin-bottom: 25px;
+}
+
+.description {
+    font-size: 17px;
+    color: #c5c5c5;
+    line-height: 1.6;
+    margin-top: 25px;
+    margin-bottom: 30px;
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.exploreBtn {
+    background-color: #e92346;
+    color: white;
+    padding: 15px 35px;
+    text-decoration: none;
+    border-radius: 30px;
+    transition: 0.3s;
+}
+
+.exploreBtn:hover {
+    background-color: #ff4565;
+    transform: scale(1.05);
+}
+
+.howBtn {
+    color: white;
+    padding: 15px 35px;
+    text-decoration: none;
+    border: 1px solid white;
+    border-radius: 30px;
+    transition: 0.3s;
+}
+
+.howBtn:hover {
+    background-color: white;
+    color: #101014;
+}
+
+
+.howToPlay {
+    background-color: #101014;
+    color: white;
+    text-align: center;
+    padding: 80px 40px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.howToPlay h2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 50px;
+}
+
+.howToPlay h2 span {
+    color: #e11d48;
+}
+
+.playSteps {
+    display: flex;
+    gap: 25px;
+    margin-top: 50px;
+}
+
+.playStep {
+    flex: 1;
+    padding: 25px;
+    background-color: #1c1c22;
+}
+
+.playStep h3 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 22px;
+}
+
+.playStep p {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.playStep img {
+    width: 100%;
+}

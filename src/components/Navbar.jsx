@@ -1,19 +1,38 @@
 import { Link } from 'react-router'
-
+import '../styles/Navbar.css'
 function Navbar({ user, handleLogout }) {
   return (
-    <nav>
-      <Link to='/'>Homepage</Link>
+      <nav className='navbar'>
+      <div className='navLogo'>
+        <Link to='/' className='logo'></Link>
+      </div>
+
+      <div className='navLink'>
+        <Link to='/'>Homepage</Link>
+        <Link to='/cases'>Cases</Link>
+
+        {user ? (<>
+         <Link to='/dashboard'>Dashboard</Link>
+         <Link to='/teams'>Teams</Link>
+        
+        </>)
+        
+        : null}
+      </div>
+
+
+      <div className='navAccount'>
+
       {user 
       ? 
       (<>
-        <Link to='/dashboard'>Dashboard</Link>
       <button onClick={handleLogout}>Sign Out</button>
       </>) : 
       (<>
         <Link to='/sign-up'>Sign Up</Link>
         <Link to='/sign-in'>Sign In</Link>
       </>)}
+      </div>
     </nav>
   )
 }
