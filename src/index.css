@@ -6,15 +6,115 @@ nav a{
     margin-right: 10px
 }
 
-div.suspect-card {
-    width: 300px;
-    height: 480px;
-    resize: both;
+/* ---------- Suspect: small photo card ---------- */
+.suspect-thumb {
+    width: 150px;
+    height: 190px;
+    margin: 10px;
+    border: 2px solid #333;
+    border-radius: 8px;
     overflow: hidden;
-    min-width: 220px;
-    min-height: 300px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.suspect-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.suspect-thumb-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 3em;
+    color: #999;
+}
+
+.suspect-thumb.is-open {
+    visibility: hidden;        /* looks like the card "lifted out" to the middle */
+}
+
+/* ---------- Suspect: big card in the middle ---------- */
+.suspect-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: overlay-fade 0.3s ease-out;
+}
+
+.suspect-modal {
+    width: min(380px, 90vw);
+    height: min(560px, 85vh);
+    perspective: 1200px;
+    /* step 1: fly from the small card's spot to the centre while growing */
+    animation: suspect-fly 0.45s ease-out both;
+}
+
+.suspect-modal-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    /* step 2: once in the middle, flip over to the chat */
+    animation: suspect-flip 0.6s ease-in-out 0.45s both;
+}
+
+.suspect-modal-front,
+.suspect-modal-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border: 2px solid #333;
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.suspect-modal-front img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.suspect-modal-back {
+    transform: rotateY(180deg);
     display: flex;
     flex-direction: column;
+    padding: 15px;
+}
+
+@keyframes suspect-fly {
+    from { transform: translate(var(--dx), var(--dy)) scale(var(--s)); }
+    to   { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes suspect-flip {
+    from { transform: rotateY(0deg); }
+    to   { transform: rotateY(180deg); }
+}
+
+@keyframes overlay-fade {
+    from { background: rgba(0, 0, 0, 0); }
+    to   { background: rgba(0, 0, 0, 0.6); }
+}
+
+.close-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    font-size: 1.2em;
+    cursor: pointer;
 }
 
 .board {
@@ -54,7 +154,6 @@ div.case-card {
     display: flex;
     align-items: center;
     gap: 10px;
-    cursor: move;            
     padding-bottom: 8px;
     border-bottom: 1px solid #ccc;
     margin-bottom: 8px;

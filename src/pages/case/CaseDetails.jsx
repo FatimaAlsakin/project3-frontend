@@ -6,17 +6,6 @@ import { DraggableCore } from 'react-draggable';
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
 import { ChatContainer, MainContainer, MessageList, Message, MessageInput, MessageSeparator, TypingIndicator } from '@chatscope/chat-ui-kit-react';
 
-function DraggableCard({ children, handle }) {
-  const cardRef = useRef(null)
-  return (
-    <Draggable nodeRef={cardRef} handle={handle}>
-      <div className='suspect-card' ref={cardRef}>
-        {children}
-      </div>
-    </Draggable>
-  )
-}
-
 function FlipCard({ front, back }) {
   const cardRef = useRef(null)
   const [flipped, setFlipped] = useState(false)
@@ -28,7 +17,7 @@ function FlipCard({ front, back }) {
       onStart={(e, data) => { startPos.current = { x: data.x, y: data.y } }}
       onStop={(e, data) => {
         const moved = Math.abs(data.x - startPos.current.x) + Math.abs(data.y - startPos.current.y)
-        if (moved < 5) setFlipped(f => !f)   // barely moved = it was a click
+        if (moved < 5) setFlipped(f => !f)   
       }}
     >
       <div ref={cardRef} className={`flip-card ${flipped ? 'flipped' : ''}`}>
@@ -41,25 +30,25 @@ function FlipCard({ front, back }) {
   )
 }
 
-function SuspectChat({ suspect }) {
-  const [messages, setMessages] = useState([])
+function SuspectChat({ suspect, messages, setMessages, onClose }) {
   const [isTyping, setIsTyping] = useState(false)
 
   const questions = [
+    { key: "name", question: "What's your name?", answer: `My name is ${suspect.name}.` },
     { key: "relation", question: "How are you connected to this case?", answer: suspect.relation, tell: suspect.relationTell },
     { key: "alibi", question: "Where were you when it happened?", answer: suspect.alibi, tell: suspect.alibiTell },
     { key: "motive", question: "Why would someone think you did this?", answer: suspect.motive, tell: suspect.motiveTell },
   ]
 
-  // questions that haven't been asked yet
   const remainingQuestions = questions.filter(q => !messages.some(m => m.key === q.key))
 
+  const knowsName = messages.some(m => m.key === "name" && m.sender === "suspect")
+  const displayName = knowsName ? suspect.name : "The suspect"
+
   function handleSend(question) {
-    // 1. show the detective's question right away
     setMessages(prev => [...prev, { key: question.key, text: question.question, sender: "user" }])
     setIsTyping(true)
 
-    // 2. after a short pause, the suspect answers (+ body language, if there is any)
     setTimeout(() => {
       const reply = [{ key: question.key, text: question.answer, sender: "suspect" }]
       if (question.tell) {
@@ -72,20 +61,20 @@ function SuspectChat({ suspect }) {
 
   return (
     <>
-      {/* header = the part you grab to drag the card */}
       <div className='suspect-header'>
-        {suspect.imageUrl && <img src={suspect.imageUrl} alt={suspect.name} draggable={false} />}
-        <h3>{suspect.name}</h3>
+        {suspect.imageUrl && <img src={suspect.imageUrl} alt={displayName} draggable={false} />}
+        <h3>{displayName}</h3>
+        <button className='close-btn' onClick={onClose} aria-label='Close'>✕</button>
       </div>
 
       <div className='suspect-chat'>
         <MainContainer>
           <ChatContainer>
-            <MessageList typingIndicator={isTyping ? <TypingIndicator content={`${suspect.name} is typing`} /> : null}>
+            <MessageList typingIndicator={isTyping ? <TypingIndicator content={`${displayName} is typing`} /> : null}>
               {messages.map((message, index) => message.sender === "tell" ? (
                 // body language: centred italic line, not a chat bubble
                 <MessageSeparator key={index} className='tell'>
-                  <em>{suspect.name} {message.text.charAt(0).toLowerCase() + message.text.slice(1)}</em>
+                  <em>{displayName} {message.text.charAt(0).toLowerCase() + message.text.slice(1)}</em>
                 </MessageSeparator>
               ) : (
                 <Message
@@ -109,6 +98,77 @@ function SuspectChat({ suspect }) {
           </button>
         ))}
       </div>
+    </>
+  )
+}
+
+const MODAL_WIDTH = 380
+
+function SuspectCard({ suspect }) {
+  const cardRef = useRef(null)
+  const startPos = useRef({ x: 0, y: 0 })
+  const [open, setOpen] = useState(false)
+  const [from, setFrom] = useState({ dx: 0, dy: 0, scale: 1 })
+  const [messages, setMessages] = useState([])
+
+  function openCard() {
+    const rect = cardRef.current.getBoundingClientRect()
+    const modalWidth = Math.min(MODAL_WIDTH, window.innerWidth * 0.9)
+    setFrom({
+      dx: rect.left + rect.width / 2 - window.innerWidth / 2,
+      dy: rect.top + rect.height / 2 - window.innerHeight / 2,
+      scale: rect.width / modalWidth,
+    })
+    setOpen(true)
+  }
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
+  return (
+    <>
+      <Draggable
+        nodeRef={cardRef}
+        onStart={(e, data) => { startPos.current = { x: data.x, y: data.y } }}
+        onStop={(e, data) => {
+          const moved = Math.abs(data.x - startPos.current.x) + Math.abs(data.y - startPos.current.y)
+          if (moved < 5) openCard()   
+        }}
+      >
+        <div ref={cardRef} className={`suspect-thumb ${open ? 'is-open' : ''}`}>
+          {suspect.imageUrl
+            ? <img src={suspect.imageUrl} alt='Suspect' draggable={false} />
+            : <span className='suspect-thumb-empty'>?</span>}
+        </div>
+      </Draggable>
+
+      {open && (
+        <div className='suspect-overlay' onClick={() => setOpen(false)}>
+          <div
+            className='suspect-modal'
+            style={{ '--dx': `${from.dx}px`, '--dy': `${from.dy}px`, '--s': from.scale }}
+            onClick={(e) => e.stopPropagation()}   // clicks inside the card don't close it
+          >
+            <div className='suspect-modal-inner'>
+              <div className='suspect-modal-front'>
+                {suspect.imageUrl && <img src={suspect.imageUrl} alt='Suspect' draggable={false} />}
+              </div>
+              <div className='suspect-modal-back'>
+                <SuspectChat
+                  suspect={suspect}
+                  messages={messages}
+                  setMessages={setMessages}
+                  onClose={() => setOpen(false)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
@@ -145,19 +205,14 @@ function CaseDetails({user}) {
     <>
       {Case ? (
         <>
-        {/* 3 columns: suspects | case | evidence */}
         <div className='board'>
 
-          {/* LEFT: suspects */}
           <div className='board-column'>
             {suspects.map((suspect) => (
-              <DraggableCard key={suspect._id} handle='.suspect-header'>
-                <SuspectChat suspect={suspect} />
-              </DraggableCard>
+              <SuspectCard key={suspect._id} suspect={suspect} />
             ))}
           </div>
 
-          {/* MIDDLE: case */}
           <div className='board-column board-center'>
             <Draggable nodeRef={nodeRef} handle='h1'>
               <div className='case-card' ref={nodeRef} >
@@ -169,7 +224,6 @@ function CaseDetails({user}) {
             </Draggable>
           </div>
 
-          {/* RIGHT: evidence */}
           <div className='board-column'>
             {evidance.map((evidence) => (
               <FlipCard
