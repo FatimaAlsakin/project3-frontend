@@ -5,6 +5,47 @@
 nav a{
     margin-right: 10px
 }
+div.suspect-card {
+    width: 300px;             
+}
+
+.suspect-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: move;            
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 8px;
+}
+
+.suspect-header img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.suspect-header h3 {
+    margin: 0;
+}
+
+.suspect-chat {
+    height: 250px;            
+}
+
+/* body language line in the chat */
+.tell {
+    color: #666;
+    font-size: 0.85em;
+}
+
+.chat-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+}
 
 .case-card,
 .suspect-card {

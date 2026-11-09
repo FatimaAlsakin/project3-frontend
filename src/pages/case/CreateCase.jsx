@@ -46,7 +46,7 @@ function CreateCase() {
     }
 
     function addSuspectRow(){
-        setSuspects([...suspects, { name: '', relation: '', motive: '', alibi: '' }])
+        setSuspects([...suspects, { name: '', relation: '', motive: '', alibi: '', relationTell: '', motiveTell: '', alibiTell: '' }])
     }
 
     function addEvidenceRow(){
@@ -170,6 +170,15 @@ function CreateCase() {
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.relation}/>
                     <br />
+                    <label htmlFor={`relationTell${index}`}>Body Language (relation): </label>
+                    <input
+                    type="text"
+                    id={`relationTell${index}`}
+                    name="relationTell"
+                    placeholder="e.g. Smiles warmly"
+                    onChange={(event) => handleSuspectChange(index, event)}
+                    value={suspect.relationTell}/>
+                    <br />
                     <label htmlFor={`motive${index}`}>Motive: </label>
                     <textarea
                     id={`motive${index}`}
@@ -178,6 +187,15 @@ function CreateCase() {
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.motive}/>
                     <br />
+                    <label htmlFor={`motiveTell${index}`}>Body Language (motive): </label>
+                    <input
+                    type="text"
+                    id={`motiveTell${index}`}
+                    name="motiveTell"
+                    placeholder="e.g. Crosses arms defensively"
+                    onChange={(event) => handleSuspectChange(index, event)}
+                    value={suspect.motiveTell}/>
+                    <br />
                     <label htmlFor={`alibi${index}`}>Alibi: </label>
                     <textarea
                     id={`alibi${index}`}
@@ -185,6 +203,15 @@ function CreateCase() {
                     required
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.alibi}/>
+                    <br />
+                    <label htmlFor={`alibiTell${index}`}>Body Language (alibi): </label>
+                    <input
+                    type="text"
+                    id={`alibiTell${index}`}
+                    name="alibiTell"
+                    placeholder="e.g. Glances at the door before answering"
+                    onChange={(event) => handleSuspectChange(index, event)}
+                    value={suspect.alibiTell}/>
                     <br />
                     <label htmlFor={`suspectImage${index}`}>Photo: </label>
                     <input

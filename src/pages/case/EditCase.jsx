@@ -45,7 +45,11 @@ function EditCase() {
                     status: foundCase.status
                 })
 
-                setSuspects(foundSuspects.map(({ _id, name, relation, motive, alibi, imageUrl }) => ({ _id, name, relation, motive, alibi, imageUrl })))
+                setSuspects(foundSuspects.map(({ _id, name, relation, motive, alibi, relationTell, motiveTell, alibiTell, imageUrl }) => ({
+                    _id, name, relation, motive, alibi,
+                    relationTell: relationTell || '', motiveTell: motiveTell || '', alibiTell: alibiTell || '',
+                    imageUrl
+                })))
 
                 const solution = foundSuspects.findIndex((suspect) => suspect._id === foundCase.solutionSuspect)
                 setSolutionIndex(solution === -1 ? null : solution)
@@ -106,7 +110,7 @@ function EditCase() {
     }
 
     function addSuspectRow(){
-        setSuspects([...suspects, { name: '', relation: '', motive: '', alibi: '' }])
+        setSuspects([...suspects, { name: '', relation: '', motive: '', alibi: '', relationTell: '', motiveTell: '', alibiTell: '' }])
     }
 
     function addEvidenceRow(){
@@ -232,6 +236,15 @@ function EditCase() {
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.relation}/>
                     <br />
+                    <label htmlFor={`relationTell${index}`}>Body Language (relation): </label>
+                    <input
+                    type="text"
+                    id={`relationTell${index}`}
+                    name="relationTell"
+                    placeholder="e.g. Smiles warmly"
+                    onChange={(event) => handleSuspectChange(index, event)}
+                    value={suspect.relationTell}/>
+                    <br />
                     <label htmlFor={`motive${index}`}>Motive: </label>
                     <textarea
                     id={`motive${index}`}
@@ -240,6 +253,15 @@ function EditCase() {
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.motive}/>
                     <br />
+                    <label htmlFor={`motiveTell${index}`}>Body Language (motive): </label>
+                    <input
+                    type="text"
+                    id={`motiveTell${index}`}
+                    name="motiveTell"
+                    placeholder="e.g. Crosses arms defensively"
+                    onChange={(event) => handleSuspectChange(index, event)}
+                    value={suspect.motiveTell}/>
+                    <br />
                     <label htmlFor={`alibi${index}`}>Alibi: </label>
                     <textarea
                     id={`alibi${index}`}
@@ -247,6 +269,15 @@ function EditCase() {
                     required
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.alibi}/>
+                    <br />
+                    <label htmlFor={`alibiTell${index}`}>Body Language (alibi): </label>
+                    <input
+                    type="text"
+                    id={`alibiTell${index}`}
+                    name="alibiTell"
+                    placeholder="e.g. Glances at the door before answering"
+                    onChange={(event) => handleSuspectChange(index, event)}
+                    value={suspect.alibiTell}/>
                     <br />
                     {suspect.imageUrl && !suspect.image && (
                         <img src={suspect.imageUrl} alt={suspect.name} width="150" />
