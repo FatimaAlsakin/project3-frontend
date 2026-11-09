@@ -6,6 +6,12 @@ import { DraggableCore } from 'react-draggable';
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
 import { ChatContainer, MainContainer, MessageList, Message, MessageInput, MessageSeparator, TypingIndicator } from '@chatscope/chat-ui-kit-react';
 
+let topZ = 1
+function bringToFront(ref) {
+  topZ += 1
+  if (ref.current) ref.current.style.zIndex = topZ
+}
+
 function FlipCard({ front, back }) {
   const cardRef = useRef(null)
   const [flipped, setFlipped] = useState(false)
@@ -14,7 +20,7 @@ function FlipCard({ front, back }) {
   return (
     <Draggable
       nodeRef={cardRef}
-      onStart={(e, data) => { startPos.current = { x: data.x, y: data.y } }}
+      onStart={(e, data) => { startPos.current = { x: data.x, y: data.y }; bringToFront(cardRef) }}
       onStop={(e, data) => {
         const moved = Math.abs(data.x - startPos.current.x) + Math.abs(data.y - startPos.current.y)
         if (moved < 5) setFlipped(f => !f)   
@@ -133,10 +139,10 @@ function SuspectCard({ suspect }) {
     <>
       <Draggable
         nodeRef={cardRef}
-        onStart={(e, data) => { startPos.current = { x: data.x, y: data.y } }}
+        onStart={(e, data) => { startPos.current = { x: data.x, y: data.y }; bringToFront(cardRef) }}
         onStop={(e, data) => {
           const moved = Math.abs(data.x - startPos.current.x) + Math.abs(data.y - startPos.current.y)
-          if (moved < 5) openCard()   
+          if (moved < 5) openCard()
         }}
       >
         <div ref={cardRef} className={`suspect-thumb ${open ? 'is-open' : ''}`}>
@@ -214,7 +220,7 @@ function CaseDetails({user}) {
           </div>
 
           <div className='board-column board-center'>
-            <Draggable nodeRef={nodeRef} handle='h1'>
+            <Draggable nodeRef={nodeRef} onStart={() => bringToFront(nodeRef)}>
               <div className='case-card' ref={nodeRef} >
                 <h1>{Case.title}</h1>
                 <h3>{Case.description}</h3>
