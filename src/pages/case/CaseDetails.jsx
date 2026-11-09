@@ -145,23 +145,32 @@ function CaseDetails({user}) {
     <>
       {Case ? (
         <>
-        <Draggable nodeRef={nodeRef}>
-          <div className='case-card' ref={nodeRef} >
-            <h1>{Case.title}</h1>
-            <h3>{Case.description}</h3>
-            <p><b>Location:</b> {Case.location}</p>
-            <p><b>Date:</b> {Case.incidentDate}</p> 
-            
-          </div>
-        </Draggable>
+        {/* 3 columns: suspects | case | evidence */}
+        <div className='board'>
 
-            {/* <h3>Suspects:</h3> */}
+          {/* LEFT: suspects */}
+          <div className='board-column'>
             {suspects.map((suspect) => (
               <DraggableCard key={suspect._id} handle='.suspect-header'>
                 <SuspectChat suspect={suspect} />
               </DraggableCard>
             ))}
-            {/* <h3>Evidence:</h3> */}
+          </div>
+
+          {/* MIDDLE: case */}
+          <div className='board-column board-center'>
+            <Draggable nodeRef={nodeRef} handle='h1'>
+              <div className='case-card' ref={nodeRef} >
+                <h1>{Case.title}</h1>
+                <h3>{Case.description}</h3>
+                <p><b>Location:</b> {Case.location}</p>
+                <p><b>Date:</b> {Case.incidentDate}</p>
+              </div>
+            </Draggable>
+          </div>
+
+          {/* RIGHT: evidence */}
+          <div className='board-column'>
             {evidance.map((evidence) => (
               <FlipCard
                 key={evidence._id}
@@ -180,6 +189,9 @@ function CaseDetails({user}) {
                 }
               />
             ))}
+          </div>
+
+        </div>
 
             {user?.isAdmin ? (
               <>
