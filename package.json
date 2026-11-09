@@ -17,6 +17,7 @@
     "react-dom": "^19.2.8",
     "react-draggable": "^4.7.2",
     "react-router": "^7.18.2",
+    "react-textarea-autosize": "^8.5.9",
     "react-xarrows": "^2.2.1"
   },
   "devDependencies": {

@@ -3,6 +3,7 @@ import Draggable from 'react-draggable'
 import Xarrow, { Xwrapper, useXarrow } from 'react-xarrows'
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
 import { ChatContainer, MainContainer, MessageList, Message, MessageSeparator, TypingIndicator } from '@chatscope/chat-ui-kit-react';
+import { useBoardNotes, StickyNote } from './BoardNotes'
 
 let topZ = 1
 function bringToFront(ref) {
@@ -10,8 +11,6 @@ function bringToFront(ref) {
   if (ref.current) ref.current.style.zIndex = topZ
 }
 
-// interactive = solve page: cards flip/open and the player can connect strings
-// not interactive = details page: cards only move, only the default strings show
 const BoardContext = createContext(null)
 
 const cardDomId = (id) => `card-${id}`
@@ -23,13 +22,11 @@ function useBoardCard(id) {
     domId: cardDomId(id),
     onDrag: updateStrings,
     interactive: board.interactive,
-    // returns true when the click was used for connecting a string
     handleClick: () => board.cardClick(id),
     stringClass: board.stringMode ? `string-mode ${board.pending === id ? 'string-pending' : ''}` : '',
   }
 }
 
-// call onClick only when the card was clicked, not dragged
 function useClickNotDrag(cardRef, onClick) {
   const startPos = useRef({ x: 0, y: 0 })
   return {
@@ -226,10 +223,24 @@ function SuspectCard({ suspect, evidence }) {
 const suspectIdOf = (evidence) =>
   typeof evidence.suspectId === 'object' ? evidence.suspectId?._id : evidence.suspectId
 
+// a sticky note on the board that can be tied with strings like the cards
+function BoardNote(props) {
+  const { domId, onDrag, handleClick, stringClass } = useBoardCard(props.note._id)
+  const { stringMode } = useContext(BoardContext)
+  return (
+    <StickyNote
+      {...props}
+      connect={{ domId, onDrag, onClick: handleClick, stringClass, stringMode }}
+    />
+  )
+}
+
 const samePair = (s, a, b) => (s.a === a && s.b === b) || (s.a === b && s.b === a)
 
-function CaseBoard({ Case, suspects, evidence, interactive = false }) {
+function CaseBoard({ Case, suspects, evidence, interactive = false, user = null }) {
   const storageKey = `case-strings-${Case._id}`
+  const showNotes = interactive && user
+  const boardNotes = useBoardNotes(Case._id, showNotes ? user : null)
 
   const [stringMode, setStringMode] = useState(false)
   const [pending, setPending] = useState(null)
@@ -247,15 +258,28 @@ function CaseBoard({ Case, suspects, evidence, interactive = false }) {
     try { localStorage.setItem(storageKey, JSON.stringify(strings)) } catch {}
   }, [strings, interactive, storageKey])
 
-  // default strings: each suspect is tied to their own evidence
   const autoStrings = evidence
     .map(e => ({ a: suspectIdOf(e), b: e._id, auto: true }))
     .filter(s => s.a && suspects.some(suspect => suspect._id === s.a))
 
+  // only draw strings whose both ends are on the board (notes load after the cards)
+  const onBoard = new Set([
+    'case',
+    ...suspects.map(s => s._id),
+    ...evidence.map(e => e._id),
+    ...boardNotes.notes.map(n => n._id),
+  ])
+
   const allStrings = [
     ...autoStrings,
     ...strings.filter(s => !autoStrings.some(auto => samePair(auto, s.a, s.b))),
-  ]
+  ].filter(s => onBoard.has(s.a) && onBoard.has(s.b))
+
+  // deleting a note also cuts its strings
+  async function removeNote(note) {
+    await boardNotes.removeNote(note)
+    setStrings(prev => prev.filter(s => s.a !== note._id && s.b !== note._id))
+  }
 
   function cardClick(id) {
     if (!stringMode) return false
@@ -292,9 +316,15 @@ function CaseBoard({ Case, suspects, evidence, interactive = false }) {
           {strings.length > 0 && (
             <button onClick={() => setStrings([])}>Clear strings</button>
           )}
+          {showNotes && (
+            <span className='add-note'>
+              Add note
+              <button onClick={boardNotes.addNote} aria-label='Add note'>+</button>
+            </span>
+          )}
           {stringMode && (
             <span className='board-hint'>
-              {pending ? 'Now click the card to connect it to.' : 'Click a card to start a string. Click a string to remove it.'}
+              {pending ? 'Now click the card or note to connect it to.' : 'Click a card or note to start a string. Click a string to remove it.'}
             </span>
           )}
         </div>
@@ -357,6 +387,23 @@ function CaseBoard({ Case, suspects, evidence, interactive = false }) {
               />
             ))}
           </div>
+
+          {showNotes && (
+            <div className='board-notes'>
+              {boardNotes.notes.map(note => (
+                <BoardNote
+                  key={note._id}
+                  note={note}
+                  user={user}
+                  position={boardNotes.positions[note._id]}
+                  onSave={boardNotes.saveNote}
+                  onRemove={removeNote}
+                  onMove={boardNotes.moveNote}
+                  onFront={bringToFront}
+                />
+              ))}
+            </div>
+          )}
 
         </div>
       </Xwrapper>
