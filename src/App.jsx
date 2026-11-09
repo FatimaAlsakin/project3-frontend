@@ -14,6 +14,8 @@ import CaseDetail from "./pages/case/CaseDetails";
 import CreateCase from "./pages/case/CreateCase";
 import EditNote from "./pages/EditNote";
 import SloveAttepmt from "./pages/sloveAttempt/SolveAttempt";
+import EditCase from "./pages/case/EditCase";
+
 function App() {
   function  getUserFromToken (){
     const token = localStorage.getItem("token");
@@ -59,6 +61,7 @@ function App() {
         <Route path="/note/:nId/edit" element={user ? <EditNote user={user} /> : <Navigate to="/sign-in" />} />
         <Route path="/case/:cId/solve" element={user ? <SloveAttepmt user={user} /> : <Navigate to="/sign-in" />} />
 
+        <Route path="/case/:cId/edit" element={user ? <EditCase /> : <Navigate to="/sign-in" />} />
       </Routes>
     </div>
   );
