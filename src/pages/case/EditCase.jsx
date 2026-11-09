@@ -18,7 +18,6 @@ function EditCase() {
     const [evidence, setEvidence] = useState([])
     const [solutionIndex, setSolutionIndex] = useState(null)
 
-    // ids that existed when the page loaded, so we know what was removed
     const [originalSuspectIds, setOriginalSuspectIds] = useState([])
     const [originalEvidenceIds, setOriginalEvidenceIds] = useState([])
 
@@ -54,10 +53,13 @@ function EditCase() {
                 const solution = foundSuspects.findIndex((suspect) => suspect._id === foundCase.solutionSuspect)
                 setSolutionIndex(solution === -1 ? null : solution)
 
-                // turn each evidence's suspectId back into a position in the suspects list
-                setEvidence(foundEvidence.map(({ _id, label, title, type, imageUrl, details, foundAt, suspectId }) => {
+                setEvidence(foundEvidence.map(({ _id, label, title, type, imageUrl, details, foundAt, suspectId, suspectResponse, responseTell }) => {
                     const suspectIndex = foundSuspects.findIndex((suspect) => suspect._id === suspectId)
-                    return { _id, label, title, type, imageUrl, details, foundAt: foundAt || '', suspectIndex: suspectIndex === -1 ? '' : String(suspectIndex) }
+                    return {
+                        _id, label, title, type, imageUrl, details, foundAt: foundAt || '',
+                        suspectIndex: suspectIndex === -1 ? '' : String(suspectIndex),
+                        suspectResponse: suspectResponse || '', responseTell: responseTell || ''
+                    }
                 }))
 
                 setOriginalSuspectIds(foundSuspects.map((suspect) => suspect._id))
@@ -114,7 +116,7 @@ function EditCase() {
     }
 
     function addEvidenceRow(){
-        setEvidence([...evidence, { label: '', title: '', type: 'image', imageUrl: '', details: '', foundAt: '', suspectIndex: '' }])
+        setEvidence([...evidence, { label: '', title: '', type: 'image', imageUrl: '', details: '', foundAt: '', suspectIndex: '', suspectResponse: '', responseTell: '' }])
     }
 
     function removeSuspectRow(index){
@@ -367,6 +369,27 @@ function EditCase() {
                         )}
                     </select>
                     <br />
+                    {evidenceItem.suspectIndex !== '' && (
+                        <>
+                            <label htmlFor={`suspectResponse${index}`}>Suspect's answer about this: </label>
+                            <textarea
+                            id={`suspectResponse${index}`}
+                            name="suspectResponse"
+                            placeholder="e.g. That's not my glove. I've never seen it before."
+                            onChange={(event) => handleEvidenceChange(index, event)}
+                            value={evidenceItem.suspectResponse}/>
+                            <br />
+                            <label htmlFor={`responseTell${index}`}>Body Language (answer): </label>
+                            <input
+                            type="text"
+                            id={`responseTell${index}`}
+                            name="responseTell"
+                            placeholder="e.g. Hides their hands under the table"
+                            onChange={(event) => handleEvidenceChange(index, event)}
+                            value={evidenceItem.responseTell}/>
+                            <br />
+                        </>
+                    )}
                     <button type="button" onClick={() => removeEvidenceRow(index)}>Remove Evidence</button>
                 </div>
             )}

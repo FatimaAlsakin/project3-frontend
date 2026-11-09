@@ -50,7 +50,7 @@ function CreateCase() {
     }
 
     function addEvidenceRow(){
-        setEvidence([...evidence, { label: '', title: '', type: 'image', imageUrl: '', details: '', foundAt: '', suspectIndex: '' }])
+        setEvidence([...evidence, { label: '', title: '', type: 'image', imageUrl: '', details: '', foundAt: '', suspectIndex: '', suspectResponse: '', responseTell: '' }])
     }
 
     function removeSuspectRow(index){
@@ -293,6 +293,27 @@ function CreateCase() {
                         )}
                     </select>
                     <br />
+                    {evidenceItem.suspectIndex !== '' && (
+                        <>
+                            <label htmlFor={`suspectResponse${index}`}>Suspect's answer about this: </label>
+                            <textarea
+                            id={`suspectResponse${index}`}
+                            name="suspectResponse"
+                            placeholder="e.g. That's not my glove. I've never seen it before."
+                            onChange={(event) => handleEvidenceChange(index, event)}
+                            value={evidenceItem.suspectResponse}/>
+                            <br />
+                            <label htmlFor={`responseTell${index}`}>Body Language (answer): </label>
+                            <input
+                            type="text"
+                            id={`responseTell${index}`}
+                            name="responseTell"
+                            placeholder="e.g. Hides their hands under the table"
+                            onChange={(event) => handleEvidenceChange(index, event)}
+                            value={evidenceItem.responseTell}/>
+                            <br />
+                        </>
+                    )}
                     <button type="button" onClick={() => removeEvidenceRow(index)}>Remove Evidence</button>
                 </div>
             )}

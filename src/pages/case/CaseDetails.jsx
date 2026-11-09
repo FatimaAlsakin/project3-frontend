@@ -79,7 +79,7 @@ function FlipCard({ id, front, back }) {
   )
 }
 
-function SuspectChat({ suspect, messages, setMessages, onClose }) {
+function SuspectChat({ suspect, evidence = [], messages, setMessages, onClose }) {
   const [isTyping, setIsTyping] = useState(false)
 
   const questions = [
@@ -87,6 +87,12 @@ function SuspectChat({ suspect, messages, setMessages, onClose }) {
     { key: "relation", question: "How are you connected to this case?", answer: suspect.relation, tell: suspect.relationTell },
     { key: "alibi", question: "Where were you when it happened?", answer: suspect.alibi, tell: suspect.alibiTell },
     { key: "motive", question: "Why would someone think you did this?", answer: suspect.motive, tell: suspect.motiveTell },
+    ...evidence.map((item) => ({
+      key: `evidence-${item._id}`,
+      question: `Can you explain this? ${item.title}`,
+      answer: item.suspectResponse || "I don't know anything about that.",
+      tell: item.responseTell,
+    })),
   ]
 
   const remainingQuestions = questions.filter(q => !messages.some(m => m.key === q.key))
@@ -152,7 +158,7 @@ function SuspectChat({ suspect, messages, setMessages, onClose }) {
 
 const MODAL_WIDTH = 380
 
-function SuspectCard({ suspect }) {
+function SuspectCard({ suspect, evidence }) {
   const cardRef = useRef(null)
   const startPos = useRef({ x: 0, y: 0 })
   const [open, setOpen] = useState(false)
@@ -210,6 +216,7 @@ function SuspectCard({ suspect }) {
               <div className='suspect-modal-back'>
                 <SuspectChat
                   suspect={suspect}
+                  evidence={evidence}
                   messages={messages}
                   setMessages={setMessages}
                   onClose={() => setOpen(false)}
@@ -223,7 +230,6 @@ function SuspectCard({ suspect }) {
   )
 }
 
-// the suspect an evidence item belongs to (a plain id, or a full object if the backend populates it)
 const suspectIdOf = (evidence) =>
   typeof evidence.suspectId === 'object' ? evidence.suspectId?._id : evidence.suspectId
 
@@ -267,15 +273,12 @@ function CaseDetails({user}) {
     try { localStorage.setItem(storageKey, JSON.stringify(strings)) } catch {}
   }, [strings])
 
-  // strings that come from the case itself: evidence linked to a suspect
-  // (suspectId can be a plain id, or a full suspect object if the backend populates it)
   const autoStrings = evidance
     .map(e => ({ a: suspectIdOf(e), b: e._id, auto: true }))
     .filter(s => s.a && suspects.some(suspect => suspect._id === s.a))
 
   const samePair = (s, a, b) => (s.a === a && s.b === b) || (s.a === b && s.b === a)
 
-  // everything to draw: automatic strings + the player's own (skipping duplicates)
   const allStrings = [
     ...autoStrings,
     ...strings.filter(s => !autoStrings.some(auto => samePair(auto, s.a, s.b))),
@@ -344,7 +347,6 @@ function CaseDetails({user}) {
               zIndex={99999}                                    
               passProps={{
                 className: auto ? 'string auto-string' : 'string',
-                // automatic strings can't be removed; the player's own can (in connect mode)
                 pointerEvents: stringMode && !auto ? 'visibleStroke' : 'none',
                 onClick: () => stringMode && !auto && removeString(a, b),
               }}
@@ -356,6 +358,7 @@ function CaseDetails({user}) {
               <SuspectCard
                 key={suspect._id}
                 suspect={suspect}
+                evidence={evidance.filter(e => suspectIdOf(e) === suspect._id)}
               />
             ))}
           </div>
