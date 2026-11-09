@@ -398,6 +398,11 @@ function CaseDetails({user}) {
                 <button><Link onClick={() => deleteCase(cId)}>Delete Case</Link></button>
               </>
             ) : null}
+
+            {user?.teamId ? 
+            <button> Start Solving</button> 
+            :null}
+
         </BoardContext.Provider>
       ) : null}
     </>
