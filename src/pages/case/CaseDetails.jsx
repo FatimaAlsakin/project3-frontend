@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, createContext, useContext } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link, useParams, useNavigate } from "react-router"
 import { getCase , delCase } from '../../services/caseService'
 import { createNotes } from "../../services/noteService"
@@ -16,37 +16,27 @@ function bringToFront(ref) {
   if (ref.current) ref.current.style.zIndex = topZ
 }
 
-const BoardContext = createContext(null)
-
 const cardDomId = (id) => `card-${id}`
 
 function useBoardCard(id) {
-  const board = useContext(BoardContext)
-  const updateStrings = useXarrow()   
+  const updateStrings = useXarrow()
   return {
     domId: cardDomId(id),
     onDrag: updateStrings,
-    handleClick: () => board.cardClick(id),
-    stringClass: board.stringMode ? `string-mode ${board.pending === id ? 'string-pending' : ''}` : '',
   }
 }
 
 function CaseCard({ Case }) {
   const cardRef = useRef(null)
-  const startPos = useRef({ x: 0, y: 0 })
-  const { domId, onDrag, handleClick, stringClass } = useBoardCard('case')
+  const { domId, onDrag } = useBoardCard('case')
 
   return (
     <Draggable
       nodeRef={cardRef}
-      onStart={(e, data) => { startPos.current = { x: data.x, y: data.y }; bringToFront(cardRef) }}
+      onStart={() => bringToFront(cardRef)}
       onDrag={onDrag}
-      onStop={(e, data) => {
-        const moved = Math.abs(data.x - startPos.current.x) + Math.abs(data.y - startPos.current.y)
-        if (moved < 5) handleClick()
-      }}
     >
-      <div id={domId} className={`case-card ${stringClass}`} ref={cardRef}>
+      <div id={domId} className="case-card" ref={cardRef}>
         <h1>{Case.title}</h1>
         <h3>{Case.description}</h3>
         <p><b>Location:</b> {Case.location}</p>
@@ -60,7 +50,7 @@ function FlipCard({ id, front, back }) {
   const cardRef = useRef(null)
   const [flipped, setFlipped] = useState(false)
   const startPos = useRef({ x: 0, y: 0 })
-  const { domId, onDrag, handleClick, stringClass } = useBoardCard(id)
+  const { domId, onDrag } = useBoardCard(id)
 
   return (
     <Draggable
@@ -69,10 +59,10 @@ function FlipCard({ id, front, back }) {
       onDrag={onDrag}
       onStop={(e, data) => {
         const moved = Math.abs(data.x - startPos.current.x) + Math.abs(data.y - startPos.current.y)
-        if (moved < 5 && !handleClick()) setFlipped(f => !f)
+        if (moved < 5) setFlipped(f => !f)
       }}
     >
-      <div id={domId} ref={cardRef} className={`flip-card ${flipped ? 'flipped' : ''} ${stringClass}`}>
+      <div id={domId} ref={cardRef} className={`flip-card ${flipped ? 'flipped' : ''}`}>
         <div className='flip-card-inner'>
           <div className='flip-card-front'>{front}</div>
           <div className='flip-card-back'>{back}</div>
@@ -167,7 +157,7 @@ function SuspectCard({ suspect, evidence }) {
   const [open, setOpen] = useState(false)
   const [from, setFrom] = useState({ dx: 0, dy: 0, scale: 1 })
   const [messages, setMessages] = useState([])
-  const { domId, onDrag, handleClick, stringClass } = useBoardCard(suspect._id)
+  const { domId, onDrag } = useBoardCard(suspect._id)
 
   function openCard() {
     const rect = cardRef.current.getBoundingClientRect()
@@ -195,10 +185,10 @@ function SuspectCard({ suspect, evidence }) {
         onDrag={onDrag}
         onStop={(e, data) => {
           const moved = Math.abs(data.x - startPos.current.x) + Math.abs(data.y - startPos.current.y)
-          if (moved < 5 && !handleClick()) openCard()
+          if (moved < 5) openCard()
         }}
       >
-        <div id={domId} ref={cardRef} className={`suspect-thumb ${open ? 'is-open' : ''} ${stringClass}`}>
+        <div id={domId} ref={cardRef} className={`suspect-thumb ${open ? 'is-open' : ''}`}>
           {suspect.imageUrl
             ? <img src={suspect.imageUrl} alt='Suspect' draggable={false} />
             : <span className='suspect-thumb-empty'>?</span>}
@@ -295,85 +285,21 @@ function CaseDetails({user}) {
       loadNotes()
     },[])
 
-  const storageKey = `case-strings-${cId}`
-
-  const [stringMode, setStringMode] = useState(false)
-  const [pending, setPending] = useState(null)   
-  const [strings, setStrings] = useState(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(storageKey)) || []
-      return saved.map(s => ({ a: s.a ?? s.source, b: s.b ?? s.target }))
-    } catch { return [] }
-  })
-
-  useEffect(() => {
-    try { localStorage.setItem(storageKey, JSON.stringify(strings)) } catch {}
-  }, [strings])
-
-  const autoStrings = evidance
-    .map(e => ({ a: suspectIdOf(e), b: e._id, auto: true }))
+  // only the default strings: each suspect is tied to their own evidence
+  const strings = evidance
+    .map(e => ({ a: suspectIdOf(e), b: e._id }))
     .filter(s => s.a && suspects.some(suspect => suspect._id === s.a))
-
-  const samePair = (s, a, b) => (s.a === a && s.b === b) || (s.a === b && s.b === a)
-
-  const allStrings = [
-    ...autoStrings,
-    ...strings.filter(s => !autoStrings.some(auto => samePair(auto, s.a, s.b))),
-  ]
-
-  function cardClick(id) {
-    if (!stringMode) return false
-    if (!pending) {
-      setPending(id)
-    } else if (pending === id) {
-      setPending(null)
-    } else {
-      const exists = allStrings.some(s => samePair(s, pending, id))
-      if (!exists) setStrings([...strings, { a: pending, b: id }])
-      setPending(null)
-    }
-    return true
-  }
-
-  function removeString(a, b) {
-    setStrings(strings.filter(s => !(s.a === a && s.b === b)))
-  }
-
-  function toggleStringMode() {
-    setStringMode(!stringMode)
-    setPending(null)
-  }
-
-  const board = {
-    cardClick,
-    stringMode,
-    pending,
-  }
 
   return (
     <>
       {Case ? (
-        <BoardContext.Provider value={board}>
-        <div className='board-toolbar'>
-          <button onClick={toggleStringMode} className={stringMode ? 'active' : ''}>
-            🧵 {stringMode ? 'Done connecting' : 'Connect cards'}
-          </button>
-          {strings.length > 0 && (
-            <button onClick={() => setStrings([])}>Clear strings</button>
-          )}
-          {stringMode && (
-            <span className='board-hint'>
-              {pending ? 'Now click the card to connect it to.' : 'Click a card to start a string. Click a string to remove it.'}
-            </span>
-          )}
-        </div>
-
+        <>
         <Xwrapper>
-        <div className={`board ${stringMode ? 'editing' : ''}`}>
+        <div className='board'>
 
-          {allStrings.map(({ a, b, auto }) => (
+          {strings.map(({ a, b }) => (
             <Xarrow
-              key={`${auto ? 'auto' : 'own'}-${a}-${b}`}
+              key={`${a}-${b}`}
               start={cardDomId(a)}
               end={cardDomId(b)}
               path='straight'
@@ -382,11 +308,7 @@ function CaseDetails({user}) {
               showHead={true} headShape='circle' headSize={3}   
               showTail={true} tailShape='circle' tailSize={3}
               zIndex={99999}                                    
-              passProps={{
-                className: auto ? 'string auto-string' : 'string',
-                pointerEvents: stringMode && !auto ? 'visibleStroke' : 'none',
-                onClick: () => stringMode && !auto && removeString(a, b),
-              }}
+              passProps={{ className: 'string auto-string', pointerEvents: 'none' }}
             />
           ))}
 
@@ -440,7 +362,7 @@ function CaseDetails({user}) {
             <button> Start Solving</button> 
             :null}
 
-        </BoardContext.Provider>
+        </>
       ) : null}
     </>
   )
