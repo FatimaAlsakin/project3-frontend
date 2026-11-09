@@ -39,7 +39,7 @@ nav a{
 }
 
 .suspect-thumb.is-open {
-    visibility: hidden;      
+    visibility: hidden;
 }
 
 .suspect-overlay {
@@ -49,7 +49,7 @@ nav a{
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 100000;         
+    z-index: 100000;
     animation: overlay-fade 0.3s ease-out;
 }
 
@@ -118,21 +118,58 @@ nav a{
     cursor: pointer;
 }
 
+.board-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px;
+}
+
+.board-toolbar button.active {
+    background: #c0392b;
+    color: #fff;
+}
+
+.board-hint {
+    color: #666;
+    font-style: italic;
+}
+
+/* strings drawn by react-xarrows: in connect mode they can be clicked to remove */
+.board.editing .string {
+    cursor: pointer;
+}
+
+.board.editing path.string:hover {
+    stroke: #ff7f50;
+    stroke-dasharray: 6 4;     /* shows which string will be removed */
+}
+
+.string-mode {
+    cursor: crosshair !important;
+}
+
+.string-pending {
+    outline: 3px dashed #c0392b;
+    outline-offset: 3px;
+}
+
 .board {
+    position: relative;
     display: grid;
-    grid-template-columns: 1fr auto 1fr;   
+    grid-template-columns: 1fr auto 1fr;
     gap: 20px;
     align-items: start;
 }
 
 .board-column {
     display: flex;
-    flex-direction: column;     
+    flex-direction: column;
     align-items: flex-start;
 }
 
 .board-column:last-child {
-    align-items: flex-end;      
+    align-items: flex-end;
 }
 
 .board-center {
@@ -141,7 +178,7 @@ nav a{
 
 div.case-card {
     width: 350px;
-    cursor: move;         
+    cursor: move;
 }
 
 .case-card h1 {
@@ -169,8 +206,8 @@ div.case-card {
 }
 
 .suspect-chat {
-    flex: 1;                 
-    min-height: 0;            
+    flex: 1;
+    min-height: 0;
 }
 
 .tell {
@@ -198,7 +235,7 @@ div.case-card {
 .flip-card {
     width: 200px;
     height: 260px;
-    /* perspective: 1000px;    
+    /* perspective: 1000px;
     /* cursor: pointer; */
     display: inline-block;
     margin: 10px;
@@ -220,7 +257,7 @@ div.case-card {
 .flip-card-back {
     position: absolute;
     inset: 0;
-    backface-visibility: hidden;          
+    backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     border: 1px solid #ccc;
     border-radius: 8px;
