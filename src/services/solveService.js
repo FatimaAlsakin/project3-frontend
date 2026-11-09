@@ -7,8 +7,8 @@ export async function teamSolveAttempt(cID){
 
 }
 
-export async function postAttemps(cID,newSuspect){
-    const response = await api.post(`/solve/${cID}`,newSuspect)
+export async function postAttemps(cID,attemptData){
+    const response = await api.post(`/solve/${cID}`,attemptData)
     return response.data
 
 }

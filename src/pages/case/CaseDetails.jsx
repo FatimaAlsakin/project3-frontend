@@ -95,30 +95,9 @@ function CaseDetails({user}) {
               </>
             ) : null}
 
-<h1>Add Note:</h1>
-                 <form onSubmit={handleSubmit}>
-            <label htmlFor="content">Note: </label>
-            <input 
-            name="content"
-            type="content"
-            id="content"
-            onChange={handleChange}
-            value={formData.content}
-            />
-                <button>Comment</button>
-                </form>
 
- <h1>All Notes</h1>
-{Notes.map((oneNotes)=>
-      <div key={oneNotes._id}>
-        <h2>{oneNotes.content}</h2>
-        
 
-         {user._id ==  oneNotes.userId._id ? (<><button onClick={() => navigate(`/note/${oneNotes._id}/edit`)}>Edit Note</button>
-          <button onClick={()=>{deleteNote(oneNotes._id)}}>Delete Note</button>
-          </>) : <></>}
-      </div>
-      )}
+
           </div>
 
         </>
