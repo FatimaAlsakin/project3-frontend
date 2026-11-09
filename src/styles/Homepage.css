@@ -123,3 +123,57 @@ body {
 .playStep img {
     width: 100%;
 }
+
+
+
+.faqSection {
+    padding: 80px 20px;
+    text-align: center;
+    background-color: #101014;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.faqSection h2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 45px;
+    color: white;
+    margin-bottom: 15px;
+}
+
+.faqSection h2 span {
+    color: #b91c1c;
+}
+
+.faqDescription {
+    color: #aaa;
+    margin-bottom: 40px;
+}
+
+.faqList {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.faqList details {
+    padding: 20px;
+    border-bottom: 1px solid #333;
+}
+
+.faqList summary {
+    color: white;
+    font-size: 17px;
+    cursor: pointer;
+}
+
+.faqList summary:hover {
+    color: #b91c1c;
+}
+
+.faqList details p {
+    color: #aaa;
+    font-size: 15px;
+    line-height: 1.8;
+    margin-top: 15px;
+    font-family: 'Montserrat', sans-serif;
+}
