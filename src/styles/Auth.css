@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap');
+
+.authPage {
+    height: 91vh;
+    background-image: url('/images/sign-in-up.png');
+    background-size: 100% 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.authForm {
+    width: 450px;
+    padding: 35px;
+    text-align: center;
+    background-color: rgba(40, 40, 40, 0.45);
+    border: 1px solid #777;
+    border-radius: 25px;
+    backdrop-filter: blur(10px);
+}
+
+.authForm h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 60px;
+    color: white;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.authSubtitle {
+    color: #ccc;
+    margin-bottom: 30px;
+}
+
+.authField {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.authField label {
+    display: block;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.authField input {
+    width: 100%;
+    padding: 15px;
+    background-color: #18181c;
+    border: 1px solid #444;
+    border-radius: 10px;
+    color: white;
+    box-sizing: border-box;
+}
+
+
+.authButton {
+    width: 100%;
+    padding: 15px;
+    background-color: #b91c1c;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-size: 17px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+
+}
+
+.authButton:hover {
+    background-color: #dc2626;
+}
+
+.cancelButton {
+    width: 100%;
+    padding: 15px;
+    background: transparent;
+    border: 1px solid white;
+    border-radius: 30px;
+    color: white;
+    font-size: 17px;
+    cursor: pointer;
+    margin-top: 15px;
+    font-family: 'Montserrat', sans-serif;
+
+}
+
+.cancelButton:hover {
+    background-color: white;
+    color: black;
+}
+
+.authForm .error {
+    color: #ff5555;
+}

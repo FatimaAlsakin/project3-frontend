@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { signUp } from "../services/authService";
+import "../styles/Auth.css"
 
 function Signup() {
   const navigate = useNavigate();
@@ -38,11 +39,15 @@ function Signup() {
   };
 
   return (
-    <main>
+    <main className="authPage">
+      <div className="authForm">
       <h1>Sign Up</h1>
+      <p className="authSubtitle">
+        Create your account and start investigating
+      </p>
       <p className="error">{error}</p>
       <form onSubmit={handleSubmit}>
-        <div>
+        <div className="authField">
           <label htmlFor="username">Username:</label>
           <input
             type="text"
@@ -53,7 +58,7 @@ function Signup() {
             required
           />
         </div>
-        <div>
+        <div className="authField">
           <label htmlFor="password">Password:</label>
           <input
             type="password"
@@ -64,7 +69,7 @@ function Signup() {
             required
           />
         </div>
-        <div>
+        <div className="authField">
           <label htmlFor="confirm">Confirm Password:</label>
           <input
             type="password"
@@ -76,10 +81,11 @@ function Signup() {
           />
         </div>
         <div>
-          <button disabled={isFormInvalid() || submitting}>{submitting ? 'Signing up...' : 'Sign Up'}</button>
-          <button onClick={() => navigate("/")}>Cancel</button>
+          <button className="authButton" disabled={isFormInvalid() || submitting}>{submitting ? 'Signing up...' : 'Sign Up'}</button>
+          <button className="cancelButton" onClick={() => navigate("/")}>Cancel</button>
         </div>
       </form>
+      </div>
     </main>
   );
 }
