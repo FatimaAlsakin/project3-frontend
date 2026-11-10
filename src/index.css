@@ -369,3 +369,76 @@ div.case-card {
     cursor: crosshair;
 }
 
+
+.accuse-bar {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+}
+
+.accuse-btn {
+    background: #c0392b;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+.accuse-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.accuse-confirm {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85em;
+}
+
+.accuse-msg {
+    margin: 0 0 6px;
+    font-size: 0.9em;
+}
+
+.accuse-msg.correct { color: #1e8449; }
+.accuse-msg.wrong { color: #c0392b; }
+
+.solved-banner {
+    margin: 10px;
+    padding: 10px 14px;
+    background: #d5f5e3;
+    border: 1px solid #1e8449;
+    border-radius: 6px;
+    color: #145a32;
+    font-weight: bold;
+}
+
+.solved-badge {
+    font-size: 0.7em;
+    color: #1e8449;
+    margin-left: 6px;
+}
+
+.failed-banner {
+    margin: 10px;
+    padding: 10px 14px;
+    background: #fadbd8;
+    border: 1px solid #c0392b;
+    border-radius: 6px;
+    color: #78281f;
+    font-weight: bold;
+}
+
+.failed-badge {
+    font-size: 0.7em;
+    color: #c0392b;
+    margin-left: 6px;
+}
+
+.attempts-left {
+    font-size: 0.85em;
+    color: #666;
+}

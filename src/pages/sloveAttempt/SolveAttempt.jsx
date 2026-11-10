@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from "react-router"
 import { getCase , delCase } from '../../services/caseService'
-import {postAttemps} from '../../services/solveService'
+import { postAttemps, getSolveStatus } from '../../services/solveService'
 import CaseBoard from '../../components/CaseBoard'
 
 function SloveAttepmt({user}) {
@@ -11,8 +11,36 @@ function SloveAttepmt({user}) {
   const [ evidance, setEvidence ] = useState([])
    const [selectedSuspect , setselectedSuspect]= useState("")
    const [result, setResult] = useState(null)
+   // solved / failed and how many attempts the team has left on this case
+   const [progress, setProgress] = useState({ solved: false, failed: false, attemptsLeft: null, maxAttempts: null })
+   const { solved, failed, attemptsLeft } = progress
+   const locked = solved || failed
+
+   function loadProgress(){
+     getSolveStatus(cId).then(setProgress).catch(err => console.log(err))
+   }
 
       const { cId } = useParams()
+
+      // used by the dropdown and by the Accuse button on each suspect
+      async function accuse(suspectId){
+        let outcome
+        try {
+          const response = await postAttemps(cId, { susbectId: suspectId })
+          outcome = { isCorrect: response.isCorrect, attemptsLeft: response.attemptsLeft }
+          setProgress(prev => ({
+            ...prev,
+            solved: response.isCorrect,
+            failed: !response.isCorrect && response.attemptsLeft === 0,
+            attemptsLeft: response.attemptsLeft,
+          }))
+        } catch (err) {
+          outcome = { error: err.response?.data?.message || "Something went wrong, try again." }
+          loadProgress()
+        }
+        setResult(outcome)
+        return outcome
+      }
 
       async function handleSolveAttempt(event){
         event.preventDefault()
@@ -20,12 +48,7 @@ function SloveAttepmt({user}) {
           setResult({ error: "Pick a suspect first." })
           return
         }
-        try {
-          const response = await postAttemps(cId, { susbectId: selectedSuspect })
-          setResult({ isCorrect: response.isCorrect })
-        } catch (err) {
-          setResult({ error: err.response?.data?.message || "Something went wrong, try again." })
-        }
+        accuse(selectedSuspect)
       }
   const navigate = useNavigate()
 
@@ -43,6 +66,7 @@ function SloveAttepmt({user}) {
 
   useEffect(()=>{
     loadCase(cId)
+    loadProgress()
   },[cId])
 
   return (
@@ -50,7 +74,9 @@ function SloveAttepmt({user}) {
       {Case ? (
         <>
           <div>
-            <CaseBoard Case={Case} suspects={suspects} evidence={evidance} interactive user={user} />
+            {solved && <p className='solved-banner'>✅ Case solved! Your team caught the culprit.</p>}
+            {failed && <p className='failed-banner'>❌ Out of attempts. Your team didn't catch the culprit.</p>}
+            <CaseBoard Case={Case} suspects={suspects} evidence={evidance} interactive user={user} onAccuse={accuse} progress={progress} />
 
 
             {user.isAdmin ? (
@@ -72,6 +98,7 @@ function SloveAttepmt({user}) {
             name="suspect"
             value={selectedSuspect}
             id="suspect"
+            disabled={locked}
             onChange={e => { setselectedSuspect(e.target.value); setResult(null) }}>
 
             <option value="" disabled>-- choose a suspect --</option>
@@ -81,15 +108,21 @@ function SloveAttepmt({user}) {
 
                 </select>
 
-                <button>Accuse Suspect</button>
+                <button disabled={locked}>Accuse Suspect</button>
             </form>
+
+            {!locked && attemptsLeft !== null && (
+              <p className='attempts-left'>Attempts left: {attemptsLeft} of {progress.maxAttempts}</p>
+            )}
 
             {result?.error && <p className='accuse-result'>{result.error}</p>}
             {result && !result.error && (
               <p className='accuse-result'>
                 {result.isCorrect
                   ? "✅ Case solved! You caught the culprit."
-                  : "❌ Wrong suspect. Keep investigating."}
+                  : result.attemptsLeft === 0
+                    ? "❌ Wrong suspect. That was your last attempt."
+                    : "❌ Wrong suspect. Keep investigating."}
               </p>
             )}
       

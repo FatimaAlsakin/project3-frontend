@@ -152,6 +152,54 @@ function SuspectChat({ suspect, evidence = [], messages, setMessages, onClose })
   )
 }
 
+function AccuseBar({ suspectId }) {
+  const { onAccuse, progress } = useContext(BoardContext)
+  const { solved, failed, attemptsLeft } = progress
+  const [confirming, setConfirming] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [outcome, setOutcome] = useState(null)
+
+  if (!onAccuse) return null
+
+  async function confirmAccuse() {
+    setBusy(true)
+    setOutcome(await onAccuse(suspectId))
+    setBusy(false)
+    setConfirming(false)
+  }
+
+  return (
+    <div className='accuse-bar'>
+      {outcome?.isCorrect && <p className='accuse-msg correct'>✅ Case solved! You caught the culprit.</p>}
+      {outcome && !outcome.error && !outcome.isCorrect && (
+        <p className='accuse-msg wrong'>
+          {outcome.attemptsLeft === 0 ? '❌ Wrong suspect. That was your last attempt.' : '❌ Wrong suspect. Keep investigating.'}
+        </p>
+      )}
+      {outcome?.error && <p className='accuse-msg wrong'>{outcome.error}</p>}
+
+      {solved ? (
+        !outcome?.isCorrect && <p className='accuse-msg'>Your team already solved this case.</p>
+      ) : failed ? (
+        !outcome && <p className='accuse-msg'>Your team has no attempts left.</p>
+      ) : confirming ? (
+        <div className='accuse-confirm'>
+          <span>
+            Accuse this suspect? This uses 1 of your {attemptsLeft} {attemptsLeft === 1 ? 'attempt' : 'attempts'} left.
+          </span>
+          <button className='accuse-btn' onClick={confirmAccuse} disabled={busy}>Yes, accuse</button>
+          <button onClick={() => setConfirming(false)} disabled={busy}>Cancel</button>
+        </div>
+      ) : (
+        <>
+          <button className='accuse-btn' onClick={() => { setOutcome(null); setConfirming(true) }}>🔍 Accuse</button>
+          {attemptsLeft != null && <span className='attempts-left'> Attempts left: {attemptsLeft}</span>}
+        </>
+      )}
+    </div>
+  )
+}
+
 const MODAL_WIDTH = 380
 
 function SuspectCard({ suspect, evidence }) {
@@ -211,6 +259,7 @@ function SuspectCard({ suspect, evidence }) {
                   setMessages={setMessages}
                   onClose={() => setOpen(false)}
                 />
+                <AccuseBar suspectId={suspect._id} />
               </div>
             </div>
           </div>
@@ -237,7 +286,7 @@ function BoardNote(props) {
 
 const samePair = (s, a, b) => (s.a === a && s.b === b) || (s.a === b && s.b === a)
 
-function CaseBoard({ Case, suspects, evidence, interactive = false, user = null }) {
+function CaseBoard({ Case, suspects, evidence, interactive = false, user = null, onAccuse = null, progress = {} }) {
   const storageKey = `case-strings-${Case._id}`
   const showNotes = interactive && user
   const boardNotes = useBoardNotes(Case._id, showNotes ? user : null)
@@ -304,7 +353,7 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null 
     setPending(null)
   }
 
-  const board = { interactive, cardClick, stringMode, pending }
+  const board = { interactive, cardClick, stringMode, pending, onAccuse: interactive ? onAccuse : null, progress }
 
   return (
     <BoardContext.Provider value={board}>
