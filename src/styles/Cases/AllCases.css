@@ -1,0 +1,72 @@
+.casesSection {
+    min-height: 100vh;
+    background-color: #0b0b0d;
+    color: white;
+    padding: 80px;
+}
+.casesHeader {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.casesHeader h2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 50px;
+    margin: 15px 0;
+}
+
+.casesHeader span {
+    color: #dc2626;
+}
+
+.casesHeader p {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    color: #aaa;
+}
+
+.casesHeader p:first-child {
+    color: #dc2626;
+    letter-spacing: 3px;
+    font-size: 12px;
+}
+
+.casesGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.caseCard {
+    background-color: #191919;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 25px;
+    font-family: 'Montserrat', sans-serif;
+
+}
+
+.caseCard h3 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 24px;
+}
+
+.caseCard p {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    color: #aaa;
+}
+
+.caseCard a {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: #dc2626;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.caseCard a:hover {
+    background-color: #b91c1c;
+}

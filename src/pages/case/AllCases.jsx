@@ -3,6 +3,7 @@ import { Link } from "react-router"
 import { getCases } from '../../services/caseService'
 import { getSolvedCases, getFailedCases } from '../../services/solveService'
 
+import "../../styles/Cases/AllCases.css"
 function AllCases() {
 
   const [cases, setCases] = useState([])
@@ -28,17 +29,22 @@ function AllCases() {
 
   return (
     <>
-    <h1>All Cases</h1>
-
+    <section className="casesSection">
+      <div className="casesHeader">
+          <p>CLASSIFIED INVESTIGATIONS</p>
+          <h2>OPEN CASE <span>FILES</span></h2>
+          <p>Every case holds a secret. Choose your investigation.</p>
+      </div>
+        <div className="casesGrid">
     {cases.map((oneCase)=>
-    <div key={oneCase._id}>
-      <h3>{oneCase.title} {solvedIds.includes(oneCase._id) && <span className='solved-badge'>✅ Solved</span>}
-        {failedIds.includes(oneCase._id) && <span className='failed-badge'>❌ Failed</span>}</h3>
+    <div className="caseCard" key={oneCase._id}>
+      <h3>{oneCase.title}</h3>
       <p>{oneCase.description}</p>
       <Link to= {`/case/${oneCase._id}`}>Explore The Case</Link>
     </div>
     )}
-    
+    </div>
+    </section>
     </>
   )
 }
