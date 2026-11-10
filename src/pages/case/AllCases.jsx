@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from "react-router"
 import { getCases } from '../../services/caseService'
+import { getSolvedCases, getFailedCases } from '../../services/solveService'
+
 import "../../styles/Cases/AllCases.css"
 function AllCases() {
 
   const [cases, setCases] = useState([])
+  const [solvedIds, setSolvedIds] = useState([])
+  const [failedIds, setFailedIds] = useState([])
 
   async function loadCases() {
     const responsse = await getCases()
     setCases(responsse)
+    // only logged in players have solved cases
+    if (localStorage.getItem("token")) {
+      try {
+        const [solved, failed] = await Promise.all([getSolvedCases(), getFailedCases()])
+        setSolvedIds(solved)
+        setFailedIds(failed)
+      } catch (err) { console.log(err) }
+    }
   }
 
   useEffect(()=>{

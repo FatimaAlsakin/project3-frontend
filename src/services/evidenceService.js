@@ -1,8 +1,10 @@
 import api from './api'
+import { toFormData } from './toFormData'
+
 //Add evidence
 export const addEvidence = async(caseId, formData) => {
     try{
-        const response = await api.post(`/evidence/${caseId}`, formData)
+        const response = await api.post(`/evidence/${caseId}`, toFormData(formData))
         return response.data
     }
     catch (err) {
@@ -14,7 +16,7 @@ export const addEvidence = async(caseId, formData) => {
 //Edit evidence
 export const editEvidence = async(evidenceId, formData) => {
     try{
-        const response = await api.put(`/evidence/${evidenceId}`, formData)
+        const response = await api.put(`/evidence/${evidenceId}`, toFormData(formData))
         return response.data
     }
     catch (err) {
