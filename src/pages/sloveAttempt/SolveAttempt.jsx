@@ -1,68 +1,62 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from "react-router"
 import { getCase , delCase } from '../../services/caseService'
-import { createNotes,getAllNotes,deleteNoteById } from "../../services/noteService"
-import {postAttemps} from '../../services/solveService'
+import { postAttemps, getSolveStatus } from '../../services/solveService'
+import CaseBoard from '../../components/CaseBoard'
 
 function SloveAttepmt({user}) {
 
   const [ Case, setCase ] = useState(null)
   const [ suspects, setSuspects ] = useState([])
   const [ evidance, setEvidence ] = useState([])
-  const [formData, setFormData] = useState({
-  content:""
-  }); 
-   const [ Notes, setNotes ] = useState([])
-   const [selectedSuspect , setselectedSuspect]= useState(null)
-   
-   
+   const [selectedSuspect , setselectedSuspect]= useState("")
+   const [result, setResult] = useState(null)
+   // solved / failed and how many attempts the team has left on this case
+   const [progress, setProgress] = useState({ solved: false, failed: false, attemptsLeft: null, maxAttempts: null })
+   const { solved, failed, attemptsLeft } = progress
+   const locked = solved || failed
 
+   function loadProgress(){
+     getSolveStatus(cId).then(setProgress).catch(err => console.log(err))
+   }
 
-    function handleChange(event){
-    setFormData({...formData, [event.target.name]:event.target.value})
-  }
-
-
-  
       const { cId } = useParams()
-     const { nID } = useParams()
-      
-     async function handleSubmit(event){
-        event.preventDefault()
-        const createNote = await createNotes(cId, formData)
-        loadNotes()
-       
-    
+
+      // used by the dropdown and by the Accuse button on each suspect
+      async function accuse(suspectId){
+        let outcome
+        try {
+          const response = await postAttemps(cId, { susbectId: suspectId })
+          outcome = { isCorrect: response.isCorrect, attemptsLeft: response.attemptsLeft }
+          setProgress(prev => ({
+            ...prev,
+            solved: response.isCorrect,
+            failed: !response.isCorrect && response.attemptsLeft === 0,
+            attemptsLeft: response.attemptsLeft,
+          }))
+        } catch (err) {
+          outcome = { error: err.response?.data?.message || "Something went wrong, try again." }
+          loadProgress()
+        }
+        setResult(outcome)
+        return outcome
       }
 
-      // Create solveAttempt from user data + selectedSuspect
       async function handleSolveAttempt(event){
         event.preventDefault()
-        const check = Case.solutionSuspect == selectedSuspect
-        const attemptData = { susbectId: selectedSuspect , isCorrect :check}
-        
-        const response = await postAttemps(cId, attemptData)
-        console.log(response)
-        
+        if (!selectedSuspect) {
+          setResult({ error: "Pick a suspect first." })
+          return
+        }
+        accuse(selectedSuspect)
       }
-        async function loadNotes(){
-       const response = await getAllNotes(cId)
-       console.log(response)
-       setNotes(response)
-     }
-
-         async function deleteNote(nID){
-         const deletedNote = await deleteNoteById(nID)
-        loadNotes()
-       }
-
   const navigate = useNavigate()
 
   async function loadCase(cId) {
     const response = await getCase(cId)
     setCase(response.case)
     setSuspects(response.suspects)
-    // setEvidence(response.evidence)
+    setEvidence(response.evidence)
   }
 
   async function deleteCase(cId){
@@ -72,35 +66,18 @@ function SloveAttepmt({user}) {
 
   useEffect(()=>{
     loadCase(cId)
+    loadProgress()
   },[cId])
-
-    useEffect(()=>{
-      loadNotes()
-    },[])
 
   return (
     <>
       {Case ? (
         <>
-          <div className='draggable'>
-            <h1>{Case.title}</h1>
-            <h3>{Case.description}</h3>
-            <div />
-            <h3>Suspects:</h3>
-            {suspects.map((suspect) => (
-              <div key={suspect._id} className='draggable'>
-                <h3><b>Suspect Name:</b> {suspect.name}</h3>
-                <p><b>Relation:</b> {suspect.relation}</p>
-                <p><b>Motive:</b> {suspect.motive}</p>
-                <p><b>Alibi:</b> {suspect.alibi}</p>
-              </div>
-            ))}
-            <h3>Evidence:</h3>
-            {evidance.map((evidence) => (
-              <div key={evidence._id} className='draggable'>
-                <h3><b>Evidence Title:</b> {evidence.title}</h3>
-              </div>
-            ))}
+          <div>
+            {solved && <p className='solved-banner'>✅ Case solved! Your team caught the culprit.</p>}
+            {failed && <p className='failed-banner'>❌ Out of attempts. Your team didn't catch the culprit.</p>}
+            <CaseBoard Case={Case} suspects={suspects} evidence={evidance} interactive user={user} onAccuse={accuse} progress={progress} />
+
 
             {user.isAdmin ? (
               <>
@@ -109,32 +86,6 @@ function SloveAttepmt({user}) {
               </>
             ) : null}
 
-
-
-<h1>Add Note:</h1>
-                 <form onSubmit={handleSubmit}>
-            <label htmlFor="content">Note: </label>
-            <input 
-            name="content"
-            type="content"
-            id="content"
-            onChange={handleChange}
-            value={formData.content}
-            />
-                <button>Comment</button>
-                </form>
-
- <h1>All Notes</h1>
-{Notes.map((oneNotes)=>
-      <div key={oneNotes._id}>
-        <h2>{oneNotes.content}</h2>
-        
-
-         {user._id ==  oneNotes.userId._id ? (<><button onClick={() => navigate(`/note/${oneNotes._id}/edit`)}>Edit Note</button>
-          <button onClick={()=>{deleteNote(oneNotes._id)}}>Delete Note</button>
-          </>) : <></>}
-      </div>
-      )}
           </div>
 
         </>
@@ -147,16 +98,33 @@ function SloveAttepmt({user}) {
             name="suspect"
             value={selectedSuspect}
             id="suspect"
-            onChange={e => setselectedSuspect(e.target.value)}>
+            disabled={locked}
+            onChange={e => { setselectedSuspect(e.target.value); setResult(null) }}>
 
-            {suspects.map((oneSuspect) => 
-                <option value={oneSuspect._id}> {oneSuspect.name}</option>
+            <option value="" disabled>-- choose a suspect --</option>
+            {suspects.map((oneSuspect) =>
+                <option key={oneSuspect._id} value={oneSuspect._id}> {oneSuspect.name}</option>
             )}
 
                 </select>
 
-                <button>Accuse Suspect</button>
+                <button disabled={locked}>Accuse Suspect</button>
             </form>
+
+            {!locked && attemptsLeft !== null && (
+              <p className='attempts-left'>Attempts left: {attemptsLeft} of {progress.maxAttempts}</p>
+            )}
+
+            {result?.error && <p className='accuse-result'>{result.error}</p>}
+            {result && !result.error && (
+              <p className='accuse-result'>
+                {result.isCorrect
+                  ? "✅ Case solved! You caught the culprit."
+                  : result.attemptsLeft === 0
+                    ? "❌ Wrong suspect. That was your last attempt."
+                    : "❌ Wrong suspect. Keep investigating."}
+              </p>
+            )}
       
     </>
   )

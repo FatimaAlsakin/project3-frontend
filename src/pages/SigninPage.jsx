@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router';
 
 import { signIn } from '../services/authService';
 
+import "../styles/Auth.css";
 
 const SignInForm = ({ setUser }) => {
   const navigate = useNavigate();
@@ -31,11 +32,15 @@ const SignInForm = ({ setUser }) => {
   };
 
   return (
-    <main>
+    <main className='authPage'>
+      <div className='authForm'>
       <h1>Sign In</h1>
+      <p className="authSubtitle">
+        Access your account and continue the investigation
+      </p>
       <p className='error'>{error}</p>
       <form autoComplete='off' onSubmit={handleSubmit}>
-        <div>
+        <div className='authField'>
           <label htmlFor='email'>Username:</label>
           <input
             type='text'
@@ -47,7 +52,7 @@ const SignInForm = ({ setUser }) => {
             required
           />
         </div>
-        <div>
+        <div className='authField'>
           <label htmlFor='password'>Password:</label>
           <input
             type='password'
@@ -60,10 +65,11 @@ const SignInForm = ({ setUser }) => {
           />
         </div>
         <div>
-          <button>Sign In</button>
-          <button type='button' onClick={() => navigate('/')}>Cancel</button>
+          <button className="authButton">Sign In</button>
+          <button className="cancelButton" type='button' onClick={() => navigate('/')}>Cancel</button>
         </div>
       </form>
+      </div>
     </main>
   );
 };
