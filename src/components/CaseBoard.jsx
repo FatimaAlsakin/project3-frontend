@@ -5,6 +5,7 @@ import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
 import { ChatContainer, MainContainer, MessageList, Message, MessageSeparator, TypingIndicator } from '@chatscope/chat-ui-kit-react';
 import { useBoardNotes, StickyNote } from './BoardNotes'
 import { useSharedBoard } from './useSharedBoard'
+import '../styles/Board.css'
 
 let topZ = 1
 function bringToFront(ref) {
@@ -50,12 +51,15 @@ function CaseCard({ Case }) {
   const dragProps = useClickNotDrag(cardRef, handleClick, onMoved)
 
   return (
-    <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} {...dragProps}>
+    // the description scrolls, so dragging starts from the rest of the card
+    <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} cancel='.case-description' {...dragProps}>
       <div id={domId} className={`case-card ${stringClass}`} ref={cardRef}>
-        <h1>{Case.title}</h1>
-        <h3>{Case.description}</h3>
-        <p><b>Location:</b> {Case.location}</p>
-        <p><b>Date:</b> {Case.incidentDate}</p>
+        <div className='case-paper taped'>
+          <p className='case-file-label'>📁 Case file</p>
+          <p className='case-description'>{Case.description}</p>
+          <p className='case-meta'><b>Location:</b> {Case.location}</p>
+          <p className='case-meta'><b>Date:</b> {Case.incidentDate}</p>
+        </div>
       </div>
     </Draggable>
   )
@@ -71,7 +75,7 @@ function FlipCard({ id, front, back }) {
 
   return (
     <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} {...dragProps}>
-      <div id={domId} ref={cardRef} className={`flip-card ${flipped ? 'flipped' : ''} ${stringClass}`}>
+      <div id={domId} ref={cardRef} className={`flip-card taped ${flipped ? 'flipped' : ''} ${stringClass}`}>
         <div className='flip-card-inner'>
           <div className='flip-card-front'>{front}</div>
           <div className='flip-card-back'>{back}</div>
@@ -142,17 +146,37 @@ function SuspectChat({ suspect, evidence = [], messages, setMessages, onClose })
                   }}
                 />
               ))}
+
+              {/* the questions you can still ask, shown inside the chat as suggestions */}
+              {!isTyping && remainingQuestions.length > 0 && (
+                <Message
+                  className='question-suggestions'
+                  model={{ type: 'custom', direction: 'incoming', position: 'single' }}
+                >
+                  <Message.CustomContent>
+                    <p className='question-suggestions-title'>{messages.length ? 'Ask next:' : 'Try asking:'}</p>
+                    {remainingQuestions.map((question) => (
+                      <button
+                        key={question.key}
+                        type='button'
+                        className='question-chip'
+                        onClick={() => handleSend(question)}
+                      >
+                        {question.question}
+                      </button>
+                    ))}
+                  </Message.CustomContent>
+                </Message>
+              )}
+
+              {!isTyping && remainingQuestions.length === 0 && (
+                <MessageSeparator className='tell'>
+                  <em>You've asked everything you can.</em>
+                </MessageSeparator>
+              )}
             </MessageList>
           </ChatContainer>
         </MainContainer>
-      </div>
-
-      <div className='chat-options'>
-        {remainingQuestions.map((question) => (
-          <button key={question.key} disabled={isTyping} onClick={() => handleSend(question)}>
-            {question.question}
-          </button>
-        ))}
       </div>
     </>
   )
@@ -240,9 +264,11 @@ function SuspectCard({ suspect, evidence }) {
     <>
       <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} {...dragProps}>
         <div id={domId} ref={cardRef} className={`suspect-thumb ${open ? 'is-open' : ''} ${stringClass}`}>
-          {suspect.imageUrl
-            ? <img src={suspect.imageUrl} alt='Suspect' draggable={false} />
-            : <span className='suspect-thumb-empty'>?</span>}
+          <div className='polaroid taped'>
+            {suspect.imageUrl
+              ? <img src={suspect.imageUrl} alt='Suspect' draggable={false} />
+              : <span className='suspect-thumb-empty'>?</span>}
+          </div>
         </div>
       </Draggable>
 
@@ -291,11 +317,43 @@ function BoardNote(props) {
 
 const isDraftId = (id) => String(id).startsWith('draft-')
 
-const noteStartSpot = (index) => ({ x: (index % 5) * 216, y: Math.floor(index / 5) * 180 })
+// starting spot for a note nobody moved yet: rows of 5, centred under the cards
+// (x is measured from the middle of the board, like the cards)
+const noteStartSpot = (index) => ({ x: ((index % 5) - 2) * 216, y: Math.floor(index / 5) * 180 })
+
+// the board's size, kept up to date when the window is resized, so notes can be kept inside it
+function useBoardArea(boardRef, notesRef) {
+  const [area, setArea] = useState(null)
+
+  useEffect(() => {
+    const board = boardRef.current
+    if (!board) return
+
+    function measure() {
+      const style = getComputedStyle(board)
+      setArea({
+        width: board.clientWidth,
+        height: board.clientHeight,
+        notesTop: notesRef.current?.offsetTop ?? 0,
+        padX: parseFloat(style.paddingLeft) || 0,
+        padTop: parseFloat(style.paddingTop) || 0,
+        padBottom: parseFloat(style.paddingBottom) || 0,
+      })
+    }
+
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(board)
+    return () => observer.disconnect()
+  }, [boardRef, notesRef])
+
+  return area
+}
 
 const samePair = (s, a, b) => (s.a === a && s.b === b) || (s.a === b && s.b === a)
 
-function CaseBoard({ Case, suspects, evidence, interactive = false, user = null, onAccuse = null, progress = {} }) {
+// children: extra controls shown along the bottom of the board (back button, accuse form, ...)
+function CaseBoard({ Case, suspects, evidence, interactive = false, user = null, onAccuse = null, progress = {}, children }) {
   const showNotes = Boolean(interactive && user)
   const sharedBoard = useSharedBoard(Case._id, showNotes)
   const { strings } = sharedBoard
@@ -303,6 +361,10 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
 
   const [stringMode, setStringMode] = useState(false)
   const [pending, setPending] = useState(null)
+
+  const boardRef = useRef(null)
+  const notesRef = useRef(null)
+  const boardArea = useBoardArea(boardRef, notesRef)
 
   const autoStrings = evidence
     .map(e => ({ a: suspectIdOf(e), b: e._id, auto: true }))
@@ -350,30 +412,44 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
 
   return (
     <BoardContext.Provider value={board}>
-      {interactive && (
-        <div className='board-toolbar'>
-          <button onClick={toggleStringMode} className={stringMode ? 'active' : ''}>
-            🧵 {stringMode ? 'Done connecting' : 'Connect cards'}
-          </button>
-          {strings.length > 0 && (
-            <button onClick={sharedBoard.clearStrings}>Clear strings</button>
-          )}
-          {showNotes && (
-            <span className='add-note'>
-              Add note
-              <button onClick={boardNotes.addNote} aria-label='Add note'>+</button>
-            </span>
-          )}
-          {stringMode && (
-            <span className='board-hint'>
-              {pending ? 'Now click the card or note to connect it to.' : 'Click a card or note to start a string. Click a string to remove it.'}
-            </span>
-          )}
-        </div>
-      )}
-
+      <div className='board-frame'>
       <Xwrapper>
-        <div className={`board ${stringMode ? 'editing' : ''}`}>
+        <div ref={boardRef} className={`board ${stringMode ? 'editing' : ''}`}>
+
+          <div className='board-header'>
+            <div className='board-toolbar'>
+              {interactive && (
+                <>
+                  <button className={`board-btn ${stringMode ? 'active' : ''}`} onClick={toggleStringMode}>
+                    🧵 {stringMode ? 'Done connecting' : 'Connect cards'}
+                  </button>
+                  {strings.length > 0 && (
+                    <button className='board-btn' onClick={sharedBoard.clearStrings}>✂️ Clear strings</button>
+                  )}
+                  {showNotes && (
+                    <button className='board-btn' onClick={boardNotes.addNote}>📝 Add note</button>
+                  )}
+                  {stringMode && (
+                    <p className='board-hint'>
+                      {pending ? 'Now click the card or note to connect it to.' : 'Click a card or note to start a string. Click a string to remove it.'}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+
+            <h1 className='paper-label board-title taped'>{Case.title}</h1>
+
+            <div className='board-status'>
+              {interactive && (
+                progress.solved ? <span className='stamp stamp-solved'>Solved</span>
+                : progress.failed ? <span className='stamp stamp-failed'>Case closed</span>
+                : progress.attemptsLeft != null && (
+                  <span className='paper-label small'>Attempts left: {progress.attemptsLeft} of {progress.maxAttempts}</span>
+                )
+              )}
+            </div>
+          </div>
 
           {allStrings.map(({ a, b, auto }) => (
             <Xarrow
@@ -394,7 +470,9 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
             />
           ))}
 
-          <div className='board-column'>
+          <div className='board-column board-left'>
+            <h2 className='paper-label taped'>Suspects</h2>
+            <div className='board-cards'>
             {suspects.map((suspect) => (
               <SuspectCard
                 key={suspect._id}
@@ -402,13 +480,17 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
                 evidence={evidence.filter(e => suspectIdOf(e) === suspect._id)}
               />
             ))}
+            </div>
           </div>
 
           <div className='board-column board-center'>
+            <h2 className='paper-label taped'>The Case</h2>
             <CaseCard Case={Case} />
           </div>
 
-          <div className='board-column'>
+          <div className='board-column board-right'>
+            <h2 className='paper-label taped'>Evidence</h2>
+            <div className='board-cards'>
             {evidence.map((item) => (
               <FlipCard
                 key={item._id}
@@ -428,10 +510,11 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
                 }
               />
             ))}
+            </div>
           </div>
 
           {showNotes && (
-            <div className='board-notes'>
+            <div ref={notesRef} className='board-notes'>
               {boardNotes.notes.map((note, index) => (
                 <BoardNote
                   key={note._id}
@@ -442,13 +525,17 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
                   onRemove={boardNotes.removeNote}
                   onMove={sharedBoard.moveItem}
                   onFront={bringToFront}
+                  area={boardArea}
                 />
               ))}
             </div>
           )}
 
+          {children && <div className='board-footer'>{children}</div>}
+
         </div>
       </Xwrapper>
+      </div>
     </BoardContext.Provider>
   )
 }

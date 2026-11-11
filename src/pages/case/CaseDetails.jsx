@@ -66,25 +66,30 @@ function CaseDetails({user}) {
     },[])
 
   return (
-    <>
+    <div className='case-details-page'>
       {Case ? (
-        <>
-        <CaseBoard Case={Case} suspects={suspects} evidence={evidance} />
+        // everything inside <CaseBoard> goes along the bottom of the board
+        <CaseBoard Case={Case} suspects={suspects} evidence={evidance}>
+          <button type='button' className='board-btn board-back' onClick={() => navigate(-1)} aria-label='Go back'>‹</button>
 
-            {user?.isAdmin ? (
-              <>
-                <button><Link to={`/case/${cId}/edit`}>Edit Case</Link></button>
-                <button><Link onClick={() => deleteCase(cId)}>Delete Case</Link></button>
-              </>
-            ) : null}
+          {user?.isAdmin && (
+            <>
+              <Link className='board-btn' to={`/case/${cId}/edit`}>✏️ Edit case</Link>
+              <button type='button' className='board-btn danger' onClick={() => deleteCase(cId)}>🗑️ Delete case</button>
+            </>
+          )}
 
-            {user?.teamId ? 
-            <button><Link to={`/case/${cId}/solve`}>Start Solving</Link></button> 
-            :null}
-
-        </>
-      ) : null}
-    </>
+          {/* anyone signed in can solve: with their team, or alone if they have none */}
+          {user ? (
+            <Link className='board-btn primary board-solve' to={`/case/${cId}/solve`}>🔍 Start solving</Link>
+          ) : (
+            <Link className='board-btn primary board-solve' to='/sign-in'>🔒 Sign in to solve</Link>
+          )}
+        </CaseBoard>
+      ) : (
+        <p className='solve-loading'>Opening the case file…</p>
+      )}
+    </div>
   )
 }
 

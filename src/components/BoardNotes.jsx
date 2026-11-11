@@ -36,7 +36,6 @@ function centerOffset(noteEl) {
   const centerY = visible ? (top + bottom) / 2 : (area.top + area.bottom) / 2
 
   const shift = (newNoteCount++ % 5) * STAGGER
-  const clamp = (value, min, max) => Math.min(Math.max(value, min), Math.max(min, max))
   const targetLeft = clamp(centerX - note.width / 2 + shift, area.left, area.right - note.width)
   const targetTop = clamp(centerY - note.height / 2 + shift, area.top, area.bottom - note.height)
 
@@ -87,7 +86,12 @@ export function useBoardNotes(caseId, user, board) {
   return { notes, addNote, saveNote, removeNote }
 }
 
-export function StickyNote({ note, user, position, onSave, onRemove, onMove, onFront, connect = {} }) {
+const clamp = (value, min, max) => Math.min(Math.max(value, min), Math.max(min, max))
+
+// area: the board's size (from CaseBoard). If the window got smaller than where the note
+// was saved, show it at the nearest spot inside the board. The saved spot is not changed,
+// so the note goes back to its place when the window is bigger again.
+export function StickyNote({ note, user, position, onSave, onRemove, onMove, onFront, area, connect = {} }) {
   const noteRef = useRef(null)
   const textRef = useRef(null)
   const [pos, setPos] = useState(position || { x: 0, y: 0 })
@@ -114,6 +118,16 @@ export function StickyNote({ note, user, position, onSave, onRemove, onMove, onF
     onFront(noteRef)
     textRef.current?.focus({ preventScroll: true })
   }, [])
+
+  // x is measured from the middle of the board, y from the top of the notes area
+  function insideBoard(p) {
+    const el = noteRef.current
+    if (!area || !el) return p
+    const maxX = area.width / 2 - el.offsetWidth / 2 - area.padX
+    const minY = area.padTop - area.notesTop
+    const maxY = area.height - area.padBottom - area.notesTop - el.offsetHeight
+    return { x: clamp(p.x, -maxX, maxX), y: clamp(p.y, minY, maxY) }
+  }
 
   function handleDrag(e, data) {
     setPos({ x: data.x, y: data.y })
@@ -154,7 +168,7 @@ export function StickyNote({ note, user, position, onSave, onRemove, onMove, onF
       nodeRef={noteRef}
       handle='.sticky-note-header'
       bounds='.board'
-      position={pos}
+      position={insideBoard(pos)}
       onStart={handleStart}
       onDrag={handleDrag}
       onStop={handleStop}

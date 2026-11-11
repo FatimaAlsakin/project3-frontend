@@ -12,7 +12,29 @@ function formatTime(dateString) {
   return `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${time}`
 }
 
-function TeamChat({ cId, user }) {
+// the slim tab shown while the chat is closed, with a count of teammates' new messages
+export function ChatTab({ user, onOpen }) {
+  const live = useLiveCase()
+  const fromTeammates = (live?.data?.messages || []).filter(msg => msg.sender?._id !== user._id)
+  // how many teammate messages there were when the chat was closed
+  const [seen, setSeen] = useState(null)
+
+  useEffect(() => {
+    if (seen === null && live?.data) setSeen(fromTeammates.length)
+  }, [live?.data])
+
+  const unread = seen === null ? 0 : Math.max(0, fromTeammates.length - seen)
+
+  return (
+    <button type='button' className='chat-tab' onClick={onOpen} aria-label='Open team chat'>
+      <span className='chat-tab-icon'>💬</span>
+      <span className='chat-tab-text'>Chat</span>
+      {unread > 0 && <span className='chat-tab-badge'>{unread}</span>}
+    </button>
+  )
+}
+
+function TeamChat({ cId, user, onClose }) {
   const [messages, setMessages] = useState([])
   const [sendError, setSendError] = useState(null)
 
@@ -42,7 +64,7 @@ function TeamChat({ cId, user }) {
   if (live?.data && !live.data.inTeam) {
     return (
       <div className='team-chat'>
-        <h2>Team Chat</h2>
+        <ChatHeader onClose={onClose} />
         <p className='team-chat-note'>Join a team to chat with your teammates about this case.</p>
       </div>
     )
@@ -50,8 +72,8 @@ function TeamChat({ cId, user }) {
 
   return (
     <div className='team-chat'>
-      <h2>Team Chat</h2>
-      {error && <p className='team-chat-note'>{error}</p>}
+      <ChatHeader onClose={onClose} />
+      {error &&<p className='team-chat-note'>{error}</p>}
       <div className='team-chat-box'>
         <MainContainer>
           <ChatContainer>
@@ -78,6 +100,17 @@ function TeamChat({ cId, user }) {
           </ChatContainer>
         </MainContainer>
       </div>
+    </div>
+  )
+}
+
+function ChatHeader({ onClose }) {
+  return (
+    <div className='team-chat-header'>
+      <h2>Team Chat</h2>
+      {onClose && (
+        <button type='button' className='team-chat-close' onClick={onClose} aria-label='Close team chat'>«</button>
+      )}
     </div>
   )
 }

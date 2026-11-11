@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from "react-router"
 import { getCase , delCase } from '../../services/caseService'
 import { postAttemps, getSolveStatus } from '../../services/solveService'
 import CaseBoard from '../../components/CaseBoard'
-import TeamChat from '../../components/TeamChat'
+import TeamChat, { ChatTab } from '../../components/TeamChat'
 import { LiveCaseProvider } from '../../components/LiveCase'
 import '../../styles/SolveAttempt.css'
 
@@ -15,8 +15,17 @@ function SloveAttepmt({user}) {
    const [selectedSuspect , setselectedSuspect]= useState("")
    const [result, setResult] = useState(null)
    const [progress, setProgress] = useState({ solved: false, failed: false, attemptsLeft: null, maxAttempts: null })
-   const { solved, failed, attemptsLeft } = progress
+   const { solved, failed } = progress
    const locked = solved || failed
+
+   // is the team chat open? remembered in this browser
+   const [chatOpen, setChatOpen] = useState(() => {
+     try { return localStorage.getItem('team-chat-open') !== 'false' } catch { return true }
+   })
+
+   useEffect(() => {
+     try { localStorage.setItem('team-chat-open', String(chatOpen)) } catch { /* storage unavailable */ }
+   }, [chatOpen])
 
    function loadProgress(){
      getSolveStatus(cId).then(setProgress).catch(err => console.log(err))
@@ -75,54 +84,40 @@ function SloveAttepmt({user}) {
     {/* one shared refresh for the chat, board and notes on this page */}
     <LiveCaseProvider cId={cId}>
     <div className='solve-layout'>
-      <aside className='solve-chat'>
-        <TeamChat cId={cId} user={user} />
+      <aside className={`solve-chat ${chatOpen ? '' : 'closed'}`}>
+        {chatOpen
+          ? <TeamChat cId={cId} user={user} onClose={() => setChatOpen(false)} />
+          : <ChatTab user={user} onOpen={() => setChatOpen(true)} />}
       </aside>
 
       <main className='solve-main'>
       {Case ? (
-        <>
-          <div>
-            {solved && <p className='solved-banner'>✅ Case solved! Your team caught the culprit.</p>}
-            {failed && <p className='failed-banner'>❌ Out of attempts. Your team didn't catch the culprit.</p>}
-            <CaseBoard Case={Case} suspects={suspects} evidence={evidance} interactive user={user} onAccuse={accuse} progress={progress} />
+        // the board shows the title, attempts left and solved / failed stamp itself;
+        // everything inside <CaseBoard> goes along the bottom of the board
+        <CaseBoard Case={Case} suspects={suspects} evidence={evidance} interactive user={user} onAccuse={accuse} progress={progress}>
+          <button type='button' className='board-btn board-back' onClick={() => navigate(-1)} aria-label='Go back'>‹</button>
 
+          {user.isAdmin && (
+            <>
+              <Link className='board-btn' to={`/case/${cId}/edit`}>✏️ Edit case</Link>
+              <button type='button' className='board-btn danger' onClick={() => deleteCase(cId)}>🗑️ Delete case</button>
+            </>
+          )}
 
-            {user.isAdmin ? (
-              <>
-                <button><Link to={`/case/${cId}/edit`}>Edit Case</Link></button>
-                <button><Link onClick={() => deleteCase(cId)}>Delete Case</Link></button>
-              </>
-            ) : null}
-
-          </div>
-
-        </>
-      ) : null}
-
-      <h1>Slove Attemps</h1>
-                  <form onSubmit={handleSolveAttempt}>
-            <label htmlFor="suspect"> Select a Suspect to Accuse: </label>
-            <select 
-            name="suspect"
-            value={selectedSuspect}
-            id="suspect"
-            disabled={locked}
-            onChange={e => { setselectedSuspect(e.target.value); setResult(null) }}>
-
-            <option value="" disabled>-- choose a suspect --</option>
-            {suspects.map((oneSuspect) =>
-                <option key={oneSuspect._id} value={oneSuspect._id}> {oneSuspect.name}</option>
-            )}
-
-                </select>
-
-                <button disabled={locked}>Accuse Suspect</button>
-            </form>
-
-            {!locked && attemptsLeft !== null && (
-              <p className='attempts-left'>Attempts left: {attemptsLeft} of {progress.maxAttempts}</p>
-            )}
+          <form className='accuse-slip taped' onSubmit={handleSolveAttempt}>
+            <label htmlFor="suspect">Who did it?</label>
+            <select
+              name="suspect"
+              value={selectedSuspect}
+              id="suspect"
+              disabled={locked}
+              onChange={e => { setselectedSuspect(e.target.value); setResult(null) }}>
+              <option value="" disabled>-- choose a suspect --</option>
+              {suspects.map((oneSuspect) =>
+                <option key={oneSuspect._id} value={oneSuspect._id}>{oneSuspect.name}</option>
+              )}
+            </select>
+            <button className='board-btn danger' disabled={locked}>🔍 Accuse</button>
 
             {result?.error && <p className='accuse-result'>{result.error}</p>}
             {result && !result.error && (
@@ -134,6 +129,11 @@ function SloveAttepmt({user}) {
                     : "❌ Wrong suspect. Keep investigating."}
               </p>
             )}
+          </form>
+        </CaseBoard>
+      ) : (
+        <p className='solve-loading'>Opening the case file…</p>
+      )}
       </main>
     </div>
     </LiveCaseProvider>
