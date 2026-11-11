@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css'
 import { MainContainer, ChatContainer, MessageList, Message, MessageInput } from '@chatscope/chat-ui-kit-react'
-import { getMessages, postMessage } from '../services/chatService'
+import { postMessage } from '../services/chatService'
+import { useLiveCase } from './LiveCase'
 import '../styles/TeamChat.css'
-
-const REFRESH_EVERY = 3000
 
 function formatTime(dateString) {
   const date = new Date(dateString)
@@ -15,36 +14,32 @@ function formatTime(dateString) {
 
 function TeamChat({ cId, user }) {
   const [messages, setMessages] = useState([])
-  const [error, setError] = useState(null)
+  const [sendError, setSendError] = useState(null)
 
-  async function loadMessages() {
-    try {
-      const data = await getMessages(cId)
-      setMessages(data)
-      setError(null)
-    } catch (err) {
-      setError(err.response?.data?.message || "Couldn't load the team chat.")
-    }
-  }
+  // the chat part of the shared refresh (see LiveCase.jsx)
+  const live = useLiveCase()
+  const latest = live?.data?.messages
+  const error = sendError || live?.error
 
   useEffect(() => {
-    loadMessages()
-    const timer = setInterval(loadMessages, REFRESH_EVERY)
-    return () => clearInterval(timer)
-  }, [cId])
+    if (latest) setMessages(latest)
+  }, [latest])
 
   async function handleSend(innerHtml, textContent) {
     const text = textContent.trim()
     if (!text) return
     try {
-      const newMessage = await postMessage(cId, text)
-      setMessages(prev => [...prev, newMessage])
+      await live.track(async () => {
+        const newMessage = await postMessage(cId, text)
+        setMessages(prev => [...prev, newMessage])
+      })
+      setSendError(null)
     } catch (err) {
-      setError(err.response?.data?.message || "Message not sent, try again.")
+      setSendError(err.response?.data?.message || "Message not sent, try again.")
     }
   }
 
-  if (error === "Must be in a team") {
+  if (live?.data && !live.data.inTeam) {
     return (
       <div className='team-chat'>
         <h2>Team Chat</h2>

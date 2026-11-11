@@ -135,14 +135,13 @@ nav a{
     font-style: italic;
 }
 
-/* strings drawn by react-xarrows: in connect mode they can be clicked to remove */
 .board.editing .string {
     cursor: pointer;
 }
 
 .board.editing path.string:hover {
     stroke: #ff7f50;
-    stroke-dasharray: 6 4;     /* shows which string will be removed */
+    stroke-dasharray: 6 4;   
 }
 
 .string-mode {
@@ -284,8 +283,6 @@ div.case-card {
 .flip-card-back {
     transform: rotateY(180deg);
 }
-
-/* ---------- Team sticky notes on the case board ---------- */
 .add-note {
     display: inline-flex;
     align-items: center;
@@ -301,13 +298,19 @@ div.case-card {
     cursor: pointer;
 }
 
-/* notes start in a row under the cards and can be dragged anywhere on the board */
+/* every note starts from the top-left corner of this area, so a saved spot means
+   the same for every teammate even when notes are added or deleted.
+   This area must NOT be positioned (no position: relative): notes have to be measured
+   against .board, otherwise they can't be dragged up onto the board. */
 .board-notes {
     grid-column: 1 / -1;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 16px;
+    min-height: 380px;
+}
+
+/* absolute with no top/left: each note sits at the start of .board-notes,
+   but belongs to .board for dragging */
+.board-notes > .sticky-note {
+    position: absolute;
 }
 
 .sticky-note {

@@ -4,6 +4,7 @@ import { getCase , delCase } from '../../services/caseService'
 import { postAttemps, getSolveStatus } from '../../services/solveService'
 import CaseBoard from '../../components/CaseBoard'
 import TeamChat from '../../components/TeamChat'
+import { LiveCaseProvider } from '../../components/LiveCase'
 import '../../styles/SolveAttempt.css'
 
 function SloveAttepmt({user}) {
@@ -71,6 +72,8 @@ function SloveAttepmt({user}) {
 
   return (
     <>
+    {/* one shared refresh for the chat, board and notes on this page */}
+    <LiveCaseProvider cId={cId}>
     <div className='solve-layout'>
       <aside className='solve-chat'>
         <TeamChat cId={cId} user={user} />
@@ -133,6 +136,7 @@ function SloveAttepmt({user}) {
             )}
       </main>
     </div>
+    </LiveCaseProvider>
     </>
   )
 }

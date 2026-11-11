@@ -1,7 +1,8 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import Draggable from 'react-draggable'
 import TextareaAutosize from 'react-textarea-autosize'
-import { createNotes, getAllNotes, updateNoteById, deleteNoteById } from '../services/noteService'
+import { createNotes, updateNoteById, deleteNoteById } from '../services/noteService'
+import { useLiveCase } from './LiveCase'
 
 const COLORS = ['#fff475', '#ffb3c1', '#a7f3d0', '#bae6fd', '#fdba74', '#d8b4fe']
 
@@ -42,59 +43,50 @@ function centerOffset(noteEl) {
   return { x: Math.round(targetLeft - note.left), y: Math.round(targetTop - note.top) }
 }
 
-export function useBoardNotes(caseId, user) {
-  const posKey = `case-notes-pos-${caseId}`
+export function useBoardNotes(caseId, user, board) {
   const [notes, setNotes] = useState([])
-  const [positions, setPositions] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(posKey)) || {} } catch { return {} }
-  })
+
+  // the notes part of the shared refresh (see LiveCase.jsx)
+  const live = useLiveCase()
+  const latest = user ? live?.data?.notes : null
+  const track = live ? live.track : (save) => save()
 
   useEffect(() => {
-    if (!user) return
-    getAllNotes(caseId).then(setNotes).catch(err => console.log(err))
-  }, [caseId, user])
-
-  useEffect(() => {
-    try { localStorage.setItem(posKey, JSON.stringify(positions)) } catch { /* storage unavailable */ }
-  }, [positions, posKey])
+    if (!latest) return
+    // keep notes this user is still writing (not saved yet)
+    setNotes(prev => [...latest, ...prev.filter(isDraft)])
+  }, [latest])
 
   function addNote() {
     const draft = { _id: `draft-${Date.now()}`, content: '', userId: { _id: user._id, username: user.username } }
     setNotes(prev => [...prev, draft])
   }
 
-  async function saveNote(note, content) {
-    if (isDraft(note)) {
-      const created = await createNotes(caseId, { content })
-      created.userId = { _id: user._id, username: user.username }
-      setNotes(prev => prev.map(n => n._id === note._id ? created : n))
-      setPositions(prev => {
-        const { [note._id]: pos, ...rest } = prev
-        return pos ? { ...rest, [created._id]: pos } : rest
-      })
-    } else {
-      await updateNoteById(note._id, { content })
-      setNotes(prev => prev.map(n => n._id === note._id ? { ...n, content } : n))
-    }
-  }
-
-  async function removeNote(note) {
-    if (!isDraft(note)) await deleteNoteById(note._id)
-    setNotes(prev => prev.filter(n => n._id !== note._id))
-    setPositions(prev => {
-      const { [note._id]: _removed, ...rest } = prev
-      return rest
+  function saveNote(note, content) {
+    return track(async () => {
+      if (isDraft(note)) {
+        const created = await createNotes(caseId, { content })
+        created.userId = { _id: user._id, username: user.username }
+        setNotes(prev => prev.map(n => n._id === note._id ? created : n))
+        board.renameItem(note._id, created._id)
+      } else {
+        await updateNoteById(note._id, { content })
+        setNotes(prev => prev.map(n => n._id === note._id ? { ...n, content } : n))
+      }
     })
   }
 
-  function moveNote(id, pos) {
-    setPositions(prev => ({ ...prev, [id]: pos }))
+  function removeNote(note) {
+    return track(async () => {
+      if (!isDraft(note)) await deleteNoteById(note._id)
+      setNotes(prev => prev.filter(n => n._id !== note._id))
+      board.forgetItem(note._id)
+    })
   }
 
-  return { notes, positions, addNote, saveNote, removeNote, moveNote }
+  return { notes, addNote, saveNote, removeNote }
 }
 
-// connect props come from the case board so a saved note can be tied with strings like a card
 export function StickyNote({ note, user, position, onSave, onRemove, onMove, onFront, connect = {} }) {
   const noteRef = useRef(null)
   const textRef = useRef(null)
@@ -104,6 +96,14 @@ export function StickyNote({ note, user, position, onSave, onRemove, onMove, onF
   const [text, setText] = useState(note.content)
   const isMine = note.userId?._id === user._id
   const connectMode = Boolean(connect.stringMode) && !isDraft(note)
+
+  useEffect(() => {
+    if (position) setPos(position)
+  }, [position?.x, position?.y])
+
+  useEffect(() => {
+    if (document.activeElement !== textRef.current) setText(note.content)
+  }, [note.content])
 
   // a new note opens in the middle of what you can see on the board, ready to type
   useLayoutEffect(() => {

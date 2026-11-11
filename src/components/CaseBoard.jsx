@@ -4,6 +4,7 @@ import Xarrow, { Xwrapper, useXarrow } from 'react-xarrows'
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
 import { ChatContainer, MainContainer, MessageList, Message, MessageSeparator, TypingIndicator } from '@chatscope/chat-ui-kit-react';
 import { useBoardNotes, StickyNote } from './BoardNotes'
+import { useSharedBoard } from './useSharedBoard'
 
 let topZ = 1
 function bringToFront(ref) {
@@ -15,6 +16,8 @@ const BoardContext = createContext(null)
 
 const cardDomId = (id) => `card-${id}`
 
+const START = { x: 0, y: 0 }
+
 function useBoardCard(id) {
   const board = useContext(BoardContext)
   const updateStrings = useXarrow()
@@ -24,27 +27,30 @@ function useBoardCard(id) {
     interactive: board.interactive,
     handleClick: () => board.cardClick(id),
     stringClass: board.stringMode ? `string-mode ${board.pending === id ? 'string-pending' : ''}` : '',
+    position: board.positions[id] || START,
+    onMoved: (pos) => board.moveItem(id, pos),
   }
 }
 
-function useClickNotDrag(cardRef, onClick) {
+function useClickNotDrag(cardRef, onClick, onMoved) {
   const startPos = useRef({ x: 0, y: 0 })
   return {
     onStart: (e, data) => { startPos.current = { x: data.x, y: data.y }; bringToFront(cardRef) },
     onStop: (e, data) => {
       const moved = Math.abs(data.x - startPos.current.x) + Math.abs(data.y - startPos.current.y)
       if (moved < 5) onClick()
+      else onMoved({ x: data.x, y: data.y })
     },
   }
 }
 
 function CaseCard({ Case }) {
   const cardRef = useRef(null)
-  const { domId, onDrag, handleClick, stringClass } = useBoardCard('case')
-  const dragProps = useClickNotDrag(cardRef, handleClick)
+  const { domId, onDrag, handleClick, stringClass, position, onMoved } = useBoardCard('case')
+  const dragProps = useClickNotDrag(cardRef, handleClick, onMoved)
 
   return (
-    <Draggable nodeRef={cardRef} onDrag={onDrag} {...dragProps}>
+    <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} {...dragProps}>
       <div id={domId} className={`case-card ${stringClass}`} ref={cardRef}>
         <h1>{Case.title}</h1>
         <h3>{Case.description}</h3>
@@ -58,13 +64,13 @@ function CaseCard({ Case }) {
 function FlipCard({ id, front, back }) {
   const cardRef = useRef(null)
   const [flipped, setFlipped] = useState(false)
-  const { domId, onDrag, interactive, handleClick, stringClass } = useBoardCard(id)
+  const { domId, onDrag, interactive, handleClick, stringClass, position, onMoved } = useBoardCard(id)
   const dragProps = useClickNotDrag(cardRef, () => {
     if (!handleClick() && interactive) setFlipped(f => !f)
-  })
+  }, onMoved)
 
   return (
-    <Draggable nodeRef={cardRef} onDrag={onDrag} {...dragProps}>
+    <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} {...dragProps}>
       <div id={domId} ref={cardRef} className={`flip-card ${flipped ? 'flipped' : ''} ${stringClass}`}>
         <div className='flip-card-inner'>
           <div className='flip-card-front'>{front}</div>
@@ -207,10 +213,10 @@ function SuspectCard({ suspect, evidence }) {
   const [open, setOpen] = useState(false)
   const [from, setFrom] = useState({ dx: 0, dy: 0, scale: 1 })
   const [messages, setMessages] = useState([])
-  const { domId, onDrag, interactive, handleClick, stringClass } = useBoardCard(suspect._id)
+  const { domId, onDrag, interactive, handleClick, stringClass, position, onMoved } = useBoardCard(suspect._id)
   const dragProps = useClickNotDrag(cardRef, () => {
     if (!handleClick() && interactive) openCard()
-  })
+  }, onMoved)
 
   function openCard() {
     const rect = cardRef.current.getBoundingClientRect()
@@ -232,7 +238,7 @@ function SuspectCard({ suspect, evidence }) {
 
   return (
     <>
-      <Draggable nodeRef={cardRef} onDrag={onDrag} {...dragProps}>
+      <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} {...dragProps}>
         <div id={domId} ref={cardRef} className={`suspect-thumb ${open ? 'is-open' : ''} ${stringClass}`}>
           {suspect.imageUrl
             ? <img src={suspect.imageUrl} alt='Suspect' draggable={false} />
@@ -272,7 +278,6 @@ function SuspectCard({ suspect, evidence }) {
 const suspectIdOf = (evidence) =>
   typeof evidence.suspectId === 'object' ? evidence.suspectId?._id : evidence.suspectId
 
-// a sticky note on the board that can be tied with strings like the cards
 function BoardNote(props) {
   const { domId, onDrag, handleClick, stringClass } = useBoardCard(props.note._id)
   const { stringMode } = useContext(BoardContext)
@@ -284,34 +289,25 @@ function BoardNote(props) {
   )
 }
 
+const isDraftId = (id) => String(id).startsWith('draft-')
+
+const noteStartSpot = (index) => ({ x: (index % 5) * 216, y: Math.floor(index / 5) * 180 })
+
 const samePair = (s, a, b) => (s.a === a && s.b === b) || (s.a === b && s.b === a)
 
 function CaseBoard({ Case, suspects, evidence, interactive = false, user = null, onAccuse = null, progress = {} }) {
-  const storageKey = `case-strings-${Case._id}`
-  const showNotes = interactive && user
-  const boardNotes = useBoardNotes(Case._id, showNotes ? user : null)
+  const showNotes = Boolean(interactive && user)
+  const sharedBoard = useSharedBoard(Case._id, showNotes)
+  const { strings } = sharedBoard
+  const boardNotes = useBoardNotes(Case._id, showNotes ? user : null, sharedBoard)
 
   const [stringMode, setStringMode] = useState(false)
   const [pending, setPending] = useState(null)
-  // the player's own strings, saved per case in this browser (solve page only)
-  const [strings, setStrings] = useState(() => {
-    if (!interactive) return []
-    try {
-      const saved = JSON.parse(localStorage.getItem(storageKey)) || []
-      return saved.map(s => ({ a: s.a ?? s.source, b: s.b ?? s.target }))
-    } catch { return [] }
-  })
-
-  useEffect(() => {
-    if (!interactive) return
-    try { localStorage.setItem(storageKey, JSON.stringify(strings)) } catch {}
-  }, [strings, interactive, storageKey])
 
   const autoStrings = evidence
     .map(e => ({ a: suspectIdOf(e), b: e._id, auto: true }))
     .filter(s => s.a && suspects.some(suspect => suspect._id === s.a))
 
-  // only draw strings whose both ends are on the board (notes load after the cards)
   const onBoard = new Set([
     'case',
     ...suspects.map(s => s._id),
@@ -324,12 +320,6 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
     ...strings.filter(s => !autoStrings.some(auto => samePair(auto, s.a, s.b))),
   ].filter(s => onBoard.has(s.a) && onBoard.has(s.b))
 
-  // deleting a note also cuts its strings
-  async function removeNote(note) {
-    await boardNotes.removeNote(note)
-    setStrings(prev => prev.filter(s => s.a !== note._id && s.b !== note._id))
-  }
-
   function cardClick(id) {
     if (!stringMode) return false
     if (!pending) {
@@ -338,14 +328,14 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
       setPending(null)
     } else {
       const exists = allStrings.some(s => samePair(s, pending, id))
-      if (!exists) setStrings([...strings, { a: pending, b: id }])
+      if (!exists) sharedBoard.addString(pending, id)
       setPending(null)
     }
     return true
   }
 
   function removeString(a, b) {
-    setStrings(strings.filter(s => !(s.a === a && s.b === b)))
+    sharedBoard.removeString(a, b)
   }
 
   function toggleStringMode() {
@@ -353,7 +343,10 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
     setPending(null)
   }
 
-  const board = { interactive, cardClick, stringMode, pending, onAccuse: interactive ? onAccuse : null, progress }
+  const board = {
+    interactive, cardClick, stringMode, pending, onAccuse: interactive ? onAccuse : null, progress,
+    positions: sharedBoard.positions, moveItem: sharedBoard.moveItem,
+  }
 
   return (
     <BoardContext.Provider value={board}>
@@ -363,7 +356,7 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
             🧵 {stringMode ? 'Done connecting' : 'Connect cards'}
           </button>
           {strings.length > 0 && (
-            <button onClick={() => setStrings([])}>Clear strings</button>
+            <button onClick={sharedBoard.clearStrings}>Clear strings</button>
           )}
           {showNotes && (
             <span className='add-note'>
@@ -439,15 +432,15 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
 
           {showNotes && (
             <div className='board-notes'>
-              {boardNotes.notes.map(note => (
+              {boardNotes.notes.map((note, index) => (
                 <BoardNote
                   key={note._id}
                   note={note}
                   user={user}
-                  position={boardNotes.positions[note._id]}
+                  position={sharedBoard.positions[note._id] || (isDraftId(note._id) ? undefined : noteStartSpot(index))}
                   onSave={boardNotes.saveNote}
-                  onRemove={removeNote}
-                  onMove={boardNotes.moveNote}
+                  onRemove={boardNotes.removeNote}
+                  onMove={sharedBoard.moveItem}
                   onFront={bringToFront}
                 />
               ))}
