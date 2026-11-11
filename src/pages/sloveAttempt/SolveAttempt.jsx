@@ -3,6 +3,8 @@ import { Link, useParams, useNavigate } from "react-router"
 import { getCase , delCase } from '../../services/caseService'
 import { postAttemps, getSolveStatus } from '../../services/solveService'
 import CaseBoard from '../../components/CaseBoard'
+import TeamChat from '../../components/TeamChat'
+import '../../styles/SolveAttempt.css'
 
 function SloveAttepmt({user}) {
 
@@ -11,7 +13,6 @@ function SloveAttepmt({user}) {
   const [ evidance, setEvidence ] = useState([])
    const [selectedSuspect , setselectedSuspect]= useState("")
    const [result, setResult] = useState(null)
-   // solved / failed and how many attempts the team has left on this case
    const [progress, setProgress] = useState({ solved: false, failed: false, attemptsLeft: null, maxAttempts: null })
    const { solved, failed, attemptsLeft } = progress
    const locked = solved || failed
@@ -22,7 +23,6 @@ function SloveAttepmt({user}) {
 
       const { cId } = useParams()
 
-      // used by the dropdown and by the Accuse button on each suspect
       async function accuse(suspectId){
         let outcome
         try {
@@ -71,6 +71,12 @@ function SloveAttepmt({user}) {
 
   return (
     <>
+    <div className='solve-layout'>
+      <aside className='solve-chat'>
+        <TeamChat cId={cId} user={user} />
+      </aside>
+
+      <main className='solve-main'>
       {Case ? (
         <>
           <div>
@@ -125,7 +131,8 @@ function SloveAttepmt({user}) {
                     : "❌ Wrong suspect. Keep investigating."}
               </p>
             )}
-      
+      </main>
+    </div>
     </>
   )
 }

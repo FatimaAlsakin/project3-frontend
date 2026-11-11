@@ -1,0 +1,33 @@
+/* chat on the left, case + accuse form on the right */
+.solve-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 16px;
+}
+
+.solve-chat {
+  flex: 0 0 320px;
+  /* stays in view while you scroll the case board */
+  position: sticky;
+  top: 16px;
+}
+
+.solve-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* small screens: stack them, case first, chat underneath */
+@media (max-width: 800px) {
+  .solve-layout {
+    flex-direction: column;
+  }
+
+  .solve-chat {
+    position: static;
+    width: 100%;
+    flex-basis: auto;
+    order: 2;
+  }
+}

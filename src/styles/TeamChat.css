@@ -1,0 +1,12 @@
+.team-chat h2 {
+  margin-top: 0;
+}
+
+/* chatscope needs a fixed height so the message list can scroll */
+.team-chat-box {
+  height: 70vh;
+}
+
+.team-chat-note {
+  font-style: italic;
+}
