@@ -45,43 +45,146 @@ function useClickNotDrag(cardRef, onClick, onMoved) {
   }
 }
 
-function CaseCard({ Case }) {
-  const cardRef = useRef(null)
-  const { domId, onDrag, handleClick, stringClass, position, onMoved } = useBoardCard('case')
-  const dragProps = useClickNotDrag(cardRef, handleClick, onMoved)
+const MODAL_WIDTHS = { normal: 520, wide: 680 }
+
+function useOpenCard(cardRef, size = 'normal') {
+  const [open, setOpen] = useState(false)
+  const [from, setFrom] = useState({ dx: 0, dy: 0, scale: 1 })
+
+  function openCard() {
+    const rect = cardRef.current.getBoundingClientRect()
+    const modalWidth = Math.min(MODAL_WIDTHS[size], window.innerWidth * 0.92)
+    setFrom({
+      dx: rect.left + rect.width / 2 - window.innerWidth / 2,
+      dy: rect.top + rect.height / 2 - window.innerHeight / 2,
+      scale: rect.width / modalWidth,
+    })
+    setOpen(true)
+  }
+
+  return { open, from, openCard, close: () => setOpen(false) }
+}
+
+function CardModal({ from, front, back, onClose, size = 'normal' }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
 
   return (
-    // the description scrolls, so dragging starts from the rest of the card
-    <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} cancel='.case-description' {...dragProps}>
-      <div id={domId} className={`case-card ${stringClass}`} ref={cardRef}>
-        <div className='case-paper taped'>
-          <p className='case-file-label'>📁 Case file</p>
-          <p className='case-description'>{Case.description}</p>
-          <p className='case-meta'><b>Location:</b> {Case.location}</p>
-          <p className='case-meta'><b>Date:</b> {Case.incidentDate}</p>
+    <div className='card-overlay' onClick={onClose}>
+      <div
+        className={`card-modal ${size} ${front ? '' : 'no-flip'}`}
+        style={{ '--dx': `${from.dx}px`, '--dy': `${from.dy}px`, '--s': from.scale }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className='card-modal-inner'>
+          {front && <div className='card-modal-front'>{front}</div>}
+          <div className='card-modal-back'>{back}</div>
         </div>
       </div>
-    </Draggable>
+    </div>
   )
 }
 
-function FlipCard({ id, front, back }) {
+function CardModalHeader({ title, onClose }) {
+  return (
+    <div className='card-modal-header'>
+      <h3>{title}</h3>
+      <button className='close-btn' onClick={onClose} aria-label='Close'>✕</button>
+    </div>
+  )
+}
+
+function formatIncidentDate(value) {
+  const date = new Date(value)
+  return isNaN(date) ? value : date.toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+function CaseCard({ Case }) {
   const cardRef = useRef(null)
-  const [flipped, setFlipped] = useState(false)
-  const { domId, onDrag, interactive, handleClick, stringClass, position, onMoved } = useBoardCard(id)
+  const { domId, onDrag, interactive, handleClick, stringClass, position, onMoved } = useBoardCard('case')
+  const { open, from, openCard, close } = useOpenCard(cardRef, 'wide')
   const dragProps = useClickNotDrag(cardRef, () => {
-    if (!handleClick() && interactive) setFlipped(f => !f)
+    if (!handleClick() && interactive) openCard()
   }, onMoved)
 
   return (
-    <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} {...dragProps}>
-      <div id={domId} ref={cardRef} className={`flip-card taped ${flipped ? 'flipped' : ''} ${stringClass}`}>
-        <div className='flip-card-inner'>
-          <div className='flip-card-front'>{front}</div>
-          <div className='flip-card-back'>{back}</div>
+    <>
+      <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} {...dragProps}>
+        <div id={domId} className={`case-card ${open ? 'is-open' : ''} ${stringClass}`} ref={cardRef}>
+          <div className='case-paper taped'>
+            <p className='case-file-label'>📁 Case file</p>
+            <p className='case-description'>{Case.description}</p>
+            <p className='case-meta'><b>Location:</b> {Case.location}</p>
+            <p className='case-meta'><b>Date:</b> {formatIncidentDate(Case.incidentDate)}</p>
+            {interactive && <p className='case-open-hint'>Click to open the file</p>}
+          </div>
         </div>
-      </div>
-    </Draggable>
+      </Draggable>
+
+      {open && (
+        <CardModal
+          from={from}
+          size='wide'
+          onClose={close}
+          back={
+            <>
+              <CardModalHeader title={`📁 ${Case.title}`} onClose={close} />
+              <div className='card-modal-body'>
+                <p className='case-modal-description'>{Case.description}</p>
+                <p className='case-meta'><b>Location:</b> {Case.location}</p>
+                <p className='case-meta'><b>Date:</b> {formatIncidentDate(Case.incidentDate)}</p>
+              </div>
+            </>
+          }
+        />
+      )}
+    </>
+  )
+}
+
+function EvidenceCard({ item }) {
+  const cardRef = useRef(null)
+  const { domId, onDrag, interactive, handleClick, stringClass, position, onMoved } = useBoardCard(item._id)
+  const { open, from, openCard, close } = useOpenCard(cardRef)
+  const dragProps = useClickNotDrag(cardRef, () => {
+    if (!handleClick() && interactive) openCard()
+  }, onMoved)
+
+  const photo = item.imageUrl
+    ? <img src={item.imageUrl} alt={item.title} draggable={false} />
+    : <span className='evidence-empty'>{item.title}</span>
+
+  return (
+    <>
+      <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} {...dragProps}>
+        <div id={domId} ref={cardRef} className={`flip-card taped ${open ? 'is-open' : ''} ${stringClass}`}>
+          <div className='flip-card-inner'>
+            <div className='flip-card-front'>{photo}</div>
+          </div>
+        </div>
+      </Draggable>
+
+      {open && (
+        <CardModal
+          from={from}
+          onClose={close}
+          front={photo}
+          back={
+            <>
+              <CardModalHeader title={item.title} onClose={close} />
+              <div className='card-modal-body'>
+                {item.imageUrl && <img className='evidence-modal-photo' src={item.imageUrl} alt={item.title} draggable={false} />}
+                <p>{item.details}</p>
+                <p className='case-meta'><b>Found at:</b> {item.foundAt}</p>
+              </div>
+            </>
+          }
+        />
+      )}
+    </>
   )
 }
 
@@ -230,35 +333,15 @@ function AccuseBar({ suspectId }) {
   )
 }
 
-const MODAL_WIDTH = 380
 
 function SuspectCard({ suspect, evidence }) {
   const cardRef = useRef(null)
-  const [open, setOpen] = useState(false)
-  const [from, setFrom] = useState({ dx: 0, dy: 0, scale: 1 })
   const [messages, setMessages] = useState([])
   const { domId, onDrag, interactive, handleClick, stringClass, position, onMoved } = useBoardCard(suspect._id)
+  const { open, from, openCard, close } = useOpenCard(cardRef)
   const dragProps = useClickNotDrag(cardRef, () => {
     if (!handleClick() && interactive) openCard()
   }, onMoved)
-
-  function openCard() {
-    const rect = cardRef.current.getBoundingClientRect()
-    const modalWidth = Math.min(MODAL_WIDTH, window.innerWidth * 0.9)
-    setFrom({
-      dx: rect.left + rect.width / 2 - window.innerWidth / 2,
-      dy: rect.top + rect.height / 2 - window.innerHeight / 2,
-      scale: rect.width / modalWidth,
-    })
-    setOpen(true)
-  }
-
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open])
 
   return (
     <>
@@ -273,29 +356,23 @@ function SuspectCard({ suspect, evidence }) {
       </Draggable>
 
       {open && (
-        <div className='suspect-overlay' onClick={() => setOpen(false)}>
-          <div
-            className='suspect-modal'
-            style={{ '--dx': `${from.dx}px`, '--dy': `${from.dy}px`, '--s': from.scale }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className='suspect-modal-inner'>
-              <div className='suspect-modal-front'>
-                {suspect.imageUrl && <img src={suspect.imageUrl} alt='Suspect' draggable={false} />}
-              </div>
-              <div className='suspect-modal-back'>
-                <SuspectChat
-                  suspect={suspect}
-                  evidence={evidence}
-                  messages={messages}
-                  setMessages={setMessages}
-                  onClose={() => setOpen(false)}
-                />
-                <AccuseBar suspectId={suspect._id} />
-              </div>
-            </div>
-          </div>
-        </div>
+        <CardModal
+          from={from}
+          onClose={close}
+          front={suspect.imageUrl && <img src={suspect.imageUrl} alt='Suspect' draggable={false} />}
+          back={
+            <>
+              <SuspectChat
+                suspect={suspect}
+                evidence={evidence}
+                messages={messages}
+                setMessages={setMessages}
+                onClose={close}
+              />
+              <AccuseBar suspectId={suspect._id} />
+            </>
+          }
+        />
       )}
     </>
   )
@@ -317,11 +394,8 @@ function BoardNote(props) {
 
 const isDraftId = (id) => String(id).startsWith('draft-')
 
-// starting spot for a note nobody moved yet: rows of 5, centred under the cards
-// (x is measured from the middle of the board, like the cards)
 const noteStartSpot = (index) => ({ x: ((index % 5) - 2) * 216, y: Math.floor(index / 5) * 180 })
 
-// the board's size, kept up to date when the window is resized, so notes can be kept inside it
 function useBoardArea(boardRef, notesRef) {
   const [area, setArea] = useState(null)
 
@@ -352,7 +426,6 @@ function useBoardArea(boardRef, notesRef) {
 
 const samePair = (s, a, b) => (s.a === a && s.b === b) || (s.a === b && s.b === a)
 
-// children: extra controls shown along the bottom of the board (back button, accuse form, ...)
 function CaseBoard({ Case, suspects, evidence, interactive = false, user = null, onAccuse = null, progress = {}, children }) {
   const showNotes = Boolean(interactive && user)
   const sharedBoard = useSharedBoard(Case._id, showNotes)
@@ -471,7 +544,6 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
           ))}
 
           <div className='board-column board-left'>
-            <h2 className='paper-label taped'>Suspects</h2>
             <div className='board-cards'>
             {suspects.map((suspect) => (
               <SuspectCard
@@ -484,31 +556,13 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
           </div>
 
           <div className='board-column board-center'>
-            <h2 className='paper-label taped'>The Case</h2>
             <CaseCard Case={Case} />
           </div>
 
           <div className='board-column board-right'>
-            <h2 className='paper-label taped'>Evidence</h2>
             <div className='board-cards'>
             {evidence.map((item) => (
-              <FlipCard
-                key={item._id}
-                id={item._id}
-                front={
-                  <>
-                    {item.imageUrl && <img src={item.imageUrl} alt={item.title} draggable={false} />}
-                  </>
-                }
-                back={
-                  <>
-                    <h3><b>Evidence Title:</b> {item.title}</h3>
-                    <p> {item.details}</p>
-                    <br />
-                    <p><b>Found At:</b> {item.foundAt}</p>
-                  </>
-                }
-              />
+              <EvidenceCard key={item._id} item={item} />
             ))}
             </div>
           </div>

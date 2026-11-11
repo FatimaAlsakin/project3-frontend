@@ -6,43 +6,8 @@ nav a{
     margin-right: 10px
 }
 
-.suspect-thumb,
-.case-card,
-.flip-card {
-    position: relative;
-}
-.suspect-thumb {
-    width: 150px;
-    height: 190px;
-    margin: 10px;
-    border: 2px solid #333;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #fff;
-    cursor: pointer;
-}
 
-.suspect-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.suspect-thumb-empty {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    font-size: 3em;
-    color: #999;
-}
-
-.suspect-thumb.is-open {
-    visibility: hidden;
-}
-
-.suspect-overlay {
+.card-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
@@ -53,14 +18,18 @@ nav a{
     animation: overlay-fade 0.3s ease-out;
 }
 
-.suspect-modal {
-    width: min(380px, 90vw);
-    height: min(560px, 85vh);
-    perspective: 1200px;
+.card-modal {
+    width: min(520px, 92vw);
+    height: min(720px, 88vh);
+    perspective: 1400px;
     animation: suspect-fly 0.45s ease-out both;
 }
 
-.suspect-modal-inner {
+.card-modal.wide {
+    width: min(680px, 92vw);
+}
+
+.card-modal-inner {
     position: relative;
     width: 100%;
     height: 100%;
@@ -68,8 +37,8 @@ nav a{
     animation: suspect-flip 0.6s ease-in-out 0.45s both;
 }
 
-.suspect-modal-front,
-.suspect-modal-back {
+.card-modal-front,
+.card-modal-back {
     position: absolute;
     inset: 0;
     backface-visibility: hidden;
@@ -81,18 +50,65 @@ nav a{
     box-sizing: border-box;
 }
 
-.suspect-modal-front img {
+.card-modal-front img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
 }
 
-.suspect-modal-back {
+.card-modal-back {
     transform: rotateY(180deg);
     display: flex;
     flex-direction: column;
-    padding: 15px;
+    padding: 18px;
+}
+
+.card-modal.no-flip .card-modal-inner {
+    animation: none;
+}
+
+.card-modal.no-flip .card-modal-back {
+    transform: none;
+}
+
+.card-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+.card-modal-header h3 {
+    margin: 0;
+    font-size: 1.3em;
+}
+
+.card-modal-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    line-height: 1.6;
+}
+
+.card-modal-body p {
+    margin: 0 0 12px;
+}
+
+.evidence-modal-photo {
+    display: block;
+    width: 100%;
+    max-height: 280px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 12px;
+}
+
+.case-modal-description {
+    white-space: pre-line;
+    font-size: 1.05em;
 }
 
 @keyframes suspect-fly {
@@ -118,23 +134,6 @@ nav a{
     cursor: pointer;
 }
 
-.board-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 10px;
-}
-
-.board-toolbar button.active {
-    background: #c0392b;
-    color: #fff;
-}
-
-.board-hint {
-    color: #666;
-    font-style: italic;
-}
-
 .board.editing .string {
     cursor: pointer;
 }
@@ -151,37 +150,6 @@ nav a{
 .string-pending {
     outline: 3px dashed #c0392b;
     outline-offset: 3px;
-}
-
-.board {
-    position: relative;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 20px;
-    align-items: start;
-}
-
-.board-column {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.board-column:last-child {
-    align-items: flex-end;
-}
-
-.board-center {
-    align-items: center;
-}
-
-div.case-card {
-    width: 350px;
-    cursor: move;
-}
-
-.case-card h1 {
-    margin-top: 0;
 }
 
 .suspect-header {
@@ -214,103 +182,50 @@ div.case-card {
     font-size: 0.85em;
 }
 
-.chat-options {
+
+.question-suggestions,
+.question-suggestions .cs-message__content-wrapper {
+    max-width: 100% !important;
+    width: 100%;
+}
+
+.question-suggestions .cs-message__content {
+    background: transparent !important;
+    padding: 0 !important;
+}
+
+.question-suggestions .cs-message__custom-content {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    margin-top: 8px;
+    gap: 8px;
 }
 
-.case-card,
-.suspect-card {
-    border: 2px solid #333;
-    border-radius: 8px;
-    padding: 15px;
-    margin: 10px;
-    width: fit-content;
-    background: #fff;
+.question-suggestions-title {
+    margin: 4px 0 0;
+    font-size: 0.9em;
+    color: #6b5a45;
 }
 
-.flip-card {
-    width: 200px;
-    height: 260px;
-    /* perspective: 1000px;
-    /* cursor: pointer; */
-    display: inline-block;
-    margin: 10px;
-}
-
-.flip-card-inner {
-    position: relative;
+.question-chip {
     width: 100%;
-    height: 100%;
-    transition: transform 0.6s;
-    transform-style: preserve-3d;
-}
-
-.flip-card.flipped .flip-card-inner {
-    transform: rotateY(180deg);
-}
-
-.flip-card-front,
-.flip-card-back {
-    position: absolute;
-    inset: 0;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background: #fff;
-    padding: 10px;
-    box-sizing: border-box;
-    overflow: auto;
-}
-
-.flip-card-front {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.flip-card-front img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 4px;
-}
-
-.flip-card-back {
-    transform: rotateY(180deg);
-}
-.add-note {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.add-note button {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    font-size: 1.2em;
-    line-height: 1;
+    padding: 10px 14px;
+    border: 1px solid #e3d6ba;
+    border-radius: 12px;
+    background: #fffdf7;
+    font: inherit;
+    font-size: 0.95em;
+    line-height: 1.35;
+    text-align: left;
+    color: #3b2d22;
     cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
 }
 
-/* every note starts from the top-left corner of this area, so a saved spot means
-   the same for every teammate even when notes are added or deleted.
-   This area must NOT be positioned (no position: relative): notes have to be measured
-   against .board, otherwise they can't be dragged up onto the board. */
-.board-notes {
-    grid-column: 1 / -1;
-    min-height: 380px;
-}
-
-/* absolute with no top/left: each note sits at the start of .board-notes,
-   but belongs to .board for dragging */
-.board-notes > .sticky-note {
-    position: absolute;
+.question-chip:hover,
+.question-chip:focus-visible {
+    background: #f6ecd6;
+    border-color: #c9b48d;
+    outline: none;
 }
 
 .sticky-note {
