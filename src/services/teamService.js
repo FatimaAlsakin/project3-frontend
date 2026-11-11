@@ -56,3 +56,15 @@ export const leaveTeam = async () => {
         throw error
     }
 }
+
+
+//Leave a team
+export const getDashboard = async () => {
+    try {
+        const response = await api.put('/teams/dashboard')
+        return response.data
+    } catch (error) {
+        console.error('Error leaving team:', error)
+        throw error
+    }
+}
