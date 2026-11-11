@@ -1,7 +1,8 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import Draggable from 'react-draggable'
 import TextareaAutosize from 'react-textarea-autosize'
-import { createNotes, getAllNotes, updateNoteById, deleteNoteById } from '../services/noteService'
+import { createNotes, updateNoteById, deleteNoteById } from '../services/noteService'
+import { useLiveCase } from './LiveCase'
 
 const COLORS = ['#fff475', '#ffb3c1', '#a7f3d0', '#bae6fd', '#fdba74', '#d8b4fe']
 
@@ -35,67 +36,62 @@ function centerOffset(noteEl) {
   const centerY = visible ? (top + bottom) / 2 : (area.top + area.bottom) / 2
 
   const shift = (newNoteCount++ % 5) * STAGGER
-  const clamp = (value, min, max) => Math.min(Math.max(value, min), Math.max(min, max))
   const targetLeft = clamp(centerX - note.width / 2 + shift, area.left, area.right - note.width)
   const targetTop = clamp(centerY - note.height / 2 + shift, area.top, area.bottom - note.height)
 
   return { x: Math.round(targetLeft - note.left), y: Math.round(targetTop - note.top) }
 }
 
-export function useBoardNotes(caseId, user) {
-  const posKey = `case-notes-pos-${caseId}`
+export function useBoardNotes(caseId, user, board) {
   const [notes, setNotes] = useState([])
-  const [positions, setPositions] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(posKey)) || {} } catch { return {} }
-  })
+
+  // the notes part of the shared refresh (see LiveCase.jsx)
+  const live = useLiveCase()
+  const latest = user ? live?.data?.notes : null
+  const track = live ? live.track : (save) => save()
 
   useEffect(() => {
-    if (!user) return
-    getAllNotes(caseId).then(setNotes).catch(err => console.log(err))
-  }, [caseId, user])
-
-  useEffect(() => {
-    try { localStorage.setItem(posKey, JSON.stringify(positions)) } catch { /* storage unavailable */ }
-  }, [positions, posKey])
+    if (!latest) return
+    // keep notes this user is still writing (not saved yet)
+    setNotes(prev => [...latest, ...prev.filter(isDraft)])
+  }, [latest])
 
   function addNote() {
     const draft = { _id: `draft-${Date.now()}`, content: '', userId: { _id: user._id, username: user.username } }
     setNotes(prev => [...prev, draft])
   }
 
-  async function saveNote(note, content) {
-    if (isDraft(note)) {
-      const created = await createNotes(caseId, { content })
-      created.userId = { _id: user._id, username: user.username }
-      setNotes(prev => prev.map(n => n._id === note._id ? created : n))
-      setPositions(prev => {
-        const { [note._id]: pos, ...rest } = prev
-        return pos ? { ...rest, [created._id]: pos } : rest
-      })
-    } else {
-      await updateNoteById(note._id, { content })
-      setNotes(prev => prev.map(n => n._id === note._id ? { ...n, content } : n))
-    }
-  }
-
-  async function removeNote(note) {
-    if (!isDraft(note)) await deleteNoteById(note._id)
-    setNotes(prev => prev.filter(n => n._id !== note._id))
-    setPositions(prev => {
-      const { [note._id]: _removed, ...rest } = prev
-      return rest
+  function saveNote(note, content) {
+    return track(async () => {
+      if (isDraft(note)) {
+        const created = await createNotes(caseId, { content })
+        created.userId = { _id: user._id, username: user.username }
+        setNotes(prev => prev.map(n => n._id === note._id ? created : n))
+        board.renameItem(note._id, created._id)
+      } else {
+        await updateNoteById(note._id, { content })
+        setNotes(prev => prev.map(n => n._id === note._id ? { ...n, content } : n))
+      }
     })
   }
 
-  function moveNote(id, pos) {
-    setPositions(prev => ({ ...prev, [id]: pos }))
+  function removeNote(note) {
+    return track(async () => {
+      if (!isDraft(note)) await deleteNoteById(note._id)
+      setNotes(prev => prev.filter(n => n._id !== note._id))
+      board.forgetItem(note._id)
+    })
   }
 
-  return { notes, positions, addNote, saveNote, removeNote, moveNote }
+  return { notes, addNote, saveNote, removeNote }
 }
 
-// connect props come from the case board so a saved note can be tied with strings like a card
-export function StickyNote({ note, user, position, onSave, onRemove, onMove, onFront, connect = {} }) {
+const clamp = (value, min, max) => Math.min(Math.max(value, min), Math.max(min, max))
+
+// area: the board's size (from CaseBoard). If the window got smaller than where the note
+// was saved, show it at the nearest spot inside the board. The saved spot is not changed,
+// so the note goes back to its place when the window is bigger again.
+export function StickyNote({ note, user, position, onSave, onRemove, onMove, onFront, area, connect = {} }) {
   const noteRef = useRef(null)
   const textRef = useRef(null)
   const [pos, setPos] = useState(position || { x: 0, y: 0 })
@@ -104,6 +100,14 @@ export function StickyNote({ note, user, position, onSave, onRemove, onMove, onF
   const [text, setText] = useState(note.content)
   const isMine = note.userId?._id === user._id
   const connectMode = Boolean(connect.stringMode) && !isDraft(note)
+
+  useEffect(() => {
+    if (position) setPos(position)
+  }, [position?.x, position?.y])
+
+  useEffect(() => {
+    if (document.activeElement !== textRef.current) setText(note.content)
+  }, [note.content])
 
   // a new note opens in the middle of what you can see on the board, ready to type
   useLayoutEffect(() => {
@@ -114,6 +118,16 @@ export function StickyNote({ note, user, position, onSave, onRemove, onMove, onF
     onFront(noteRef)
     textRef.current?.focus({ preventScroll: true })
   }, [])
+
+  // x is measured from the middle of the board, y from the top of the notes area
+  function insideBoard(p) {
+    const el = noteRef.current
+    if (!area || !el) return p
+    const maxX = area.width / 2 - el.offsetWidth / 2 - area.padX
+    const minY = area.padTop - area.notesTop
+    const maxY = area.height - area.padBottom - area.notesTop - el.offsetHeight
+    return { x: clamp(p.x, -maxX, maxX), y: clamp(p.y, minY, maxY) }
+  }
 
   function handleDrag(e, data) {
     setPos({ x: data.x, y: data.y })
@@ -154,7 +168,7 @@ export function StickyNote({ note, user, position, onSave, onRemove, onMove, onF
       nodeRef={noteRef}
       handle='.sticky-note-header'
       bounds='.board'
-      position={pos}
+      position={insideBoard(pos)}
       onStart={handleStart}
       onDrag={handleDrag}
       onStop={handleStop}
