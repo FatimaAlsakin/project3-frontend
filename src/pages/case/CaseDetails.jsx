@@ -45,11 +45,17 @@ function CaseDetails({user}) {
 
   const navigate = useNavigate()
 
+  const [loadError, setLoadError] = useState(null)
+
   async function loadCase(cId) {
-    const response = await getCase(cId)
-    setCase(response.case)
-    setSuspects(response.suspects)
-    setEvidence(response.evidence)
+    try {
+      const response = await getCase(cId)
+      setCase(response.case)
+      setSuspects(response.suspects)
+      setEvidence(response.evidence)
+    } catch (err) {
+      setLoadError(err.response?.data?.message || "Couldn't open this case.")
+    }
   }
 
   async function deleteCase(cId){
@@ -62,13 +68,12 @@ function CaseDetails({user}) {
   },[cId])
 
     useEffect(()=>{
-      loadNotes()
+      if (user) loadNotes()
     },[])
 
   return (
     <div className='case-details-page'>
       {Case ? (
-        // everything inside <CaseBoard> goes along the bottom of the board
         <CaseBoard Case={Case} suspects={suspects} evidence={evidance}>
           <button type='button' className='board-btn board-back' onClick={() => navigate(-1)} aria-label='Go back'>‹</button>
 
@@ -79,7 +84,6 @@ function CaseDetails({user}) {
             </>
           )}
 
-          {/* anyone signed in can solve: with their team, or alone if they have none */}
           {user ? (
             <Link className='board-btn primary board-solve' to={`/case/${cId}/solve`}>🔍 Start solving</Link>
           ) : (
@@ -87,7 +91,7 @@ function CaseDetails({user}) {
           )}
         </CaseBoard>
       ) : (
-        <p className='solve-loading'>Opening the case file…</p>
+        <p className='solve-loading'>{loadError || 'Opening the case file…'}</p>
       )}
     </div>
   )

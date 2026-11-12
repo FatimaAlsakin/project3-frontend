@@ -38,6 +38,15 @@ function AllCases() {
         <div className="casesGrid">
     {cases.map((oneCase)=>
     <div className="caseCard" key={oneCase._id}>
+      {oneCase.imageUrl
+        ? <img className="caseCardImage" src={oneCase.imageUrl} alt={oneCase.title} />
+        : <div className="caseCardImage caseCardNoImage">NO PHOTO ON FILE</div>}
+      <div className="caseCardTags">
+        <span className={`caseTag difficulty-${oneCase.difficulty}`}>{oneCase.difficulty}</span>
+        {(oneCase.status === 'draft' || oneCase.status === 'closed') && (
+          <span className="caseTag caseTagStatus">{oneCase.status}</span>
+        )}
+      </div>
       <h3>{oneCase.title}</h3>
       <p>{oneCase.description}</p>
       <Link to= {`/case/${oneCase._id}`}>Explore The Case</Link>

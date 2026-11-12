@@ -7,7 +7,7 @@ export async function getCases(){
 }
 
 export async function postCase(newCase) {
-    const response = await api.post('/cases' , newCase)
+    const response = await api.post('/cases' , toFormData(newCase))
     return response.data
 }
 
@@ -17,7 +17,7 @@ export async function getCase(cId){
 }
 
 export async function putCase(cId, updatedCase) {
-    const response = await api.put(`/cases/${cId}` , updatedCase)
+    const response = await api.put(`/cases/${cId}` , toFormData(updatedCase))
     return response.data
 }
 
