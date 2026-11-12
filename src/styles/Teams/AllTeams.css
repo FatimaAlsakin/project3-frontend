@@ -1,0 +1,190 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap');
+
+.allTeamsPage {
+    min-height: 100vh;
+    background-color: #11100f;
+    color: #f1e6d3;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.teamsHead {
+    height: 710px;
+    background-image: url("/images/allTeamsBack.png");
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+}
+
+.teamsHead h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 64px;
+    letter-spacing: 3px;
+    margin: 0;
+    color: #f1e6d3;
+}
+
+.teamsHead p {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 19px;
+    color: #d4c7b6;
+    margin: 0;
+}
+
+.createBtn {
+    display: inline-block;
+    background-color: #981919;
+    color: white;
+    padding: 16px 45px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 30px;
+    margin-top: 12px;
+    transition: 0.3s;
+}
+
+.createBtn:hover {
+    background-color: #c12626;
+    transform: translateY(-3px);
+}
+
+.filesHead {
+    padding: 55px 50px 90px;
+    text-align: center;
+}
+
+.filesHead h2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 36px;
+    letter-spacing: 3px;
+    margin-bottom: 45px;
+}
+
+.teamFiles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 35px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.oneFile {
+    position: relative;
+    height: 350px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.oneFile:hover {
+    transform: translateY(-10px);
+}
+
+.folderClosed,
+.folderOpen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    top: 0;
+    left: 0;
+    transition: opacity 0.3s;
+}
+
+.folderOpen {
+    opacity: 0;
+}
+
+.oneFile:hover .folderClosed {
+    opacity: 0;
+}
+
+.oneFile:hover .folderOpen {
+    opacity: 1;
+}
+
+
+.teamName {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Oswald', sans-serif;
+    font-size: 34px;
+    color: #302016;
+    width: 75%;
+    margin: 0;
+    z-index: 2;
+    transition: 0.3s;
+}
+
+.oneFile:hover .teamName {
+    top: 43%;
+}
+
+
+.oneFile button {
+    position: absolute;
+    bottom: 16%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #981919;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    padding: 13px 30px;
+    border-radius: 30px;
+    cursor: pointer;
+    opacity: 0;
+    transition: 0.3s;
+    z-index: 2;
+    white-space: nowrap;
+}
+
+.oneFile:hover button {
+    opacity: 1;
+}
+
+.oneFile button:hover {
+    background-color: #c12626;
+}
+
+.oneFile button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+.createBtn,
+.oneFile button {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.teamMembers {
+    position: absolute;
+    bottom: 34%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+    color: #854923;
+    opacity: 0;
+    z-index: 2;
+    white-space: nowrap;
+    transition: 0.3s;
+    font-family: 'Oswald', sans-serif;
+
+}
+.oneFile:hover .teamMembers {
+    opacity: 1;
+}

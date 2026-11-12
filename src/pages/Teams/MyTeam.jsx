@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getMyTeam, leaveTeam } from '../../services/teamService'
 import { useNavigate } from 'react-router'
+import "../../styles/Teams/MyTeam.css"
 
 function MyTeam() {
     const [team, setTeam] = useState(null)
@@ -31,19 +32,28 @@ function MyTeam() {
 
 
     return (
-        <div>
-            <h1>My Team</h1>
+        <main className="myTeamPage">
+            <div className="myTeamHeader">
+                <h1>MY TEAM</h1>
+                <p>Your detective squad, ready to solve the next case.</p>
+            </div>
+            <section className="teamDetails">
             <h2>{team.name}</h2>
-            <h3>Created By: {team.createdBy.username}</h3>
-            <h3>Members:</h3>
-            <ul>
-                {members.map((oneMember) => (
-                    <li key={oneMember._id}>{oneMember.username}</li>
-                ))}
-            </ul>
+            <p>Created By: {team.createdBy.username}</p>
+            <p>Members: {members.length} / {team.maxMembers}</p>
             <button onClick={handleLeave}>Leave Team</button>
+            </section>
+            <section className="teamMembersSection">
+                <h2>Team Members</h2>
+                {members.map((oneMember) => (
+                    <div  className="memberCard" key={oneMember._id}>
+                        <img src="/images/member.png" alt="Detective ID" />
+                        <h3>{oneMember.username}</h3>
+                    </div>
+                ))}
+            </section>
             
-        </div>
+        </main>
     )
 }
 
