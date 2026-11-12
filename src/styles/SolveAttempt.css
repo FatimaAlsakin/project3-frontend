@@ -1,0 +1,61 @@
+.solve-layout {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  padding: 16px;
+  min-height: calc(100vh - 75px);
+  box-sizing: border-box;
+  background: #241a14;
+}
+
+.solve-chat {
+  flex: 0 0 300px;
+  position: sticky;
+  top: 16px;
+  height: calc(100vh - 107px);
+  align-self: flex-start;
+}
+
+.solve-chat.closed {
+  flex-basis: 52px;
+  height: auto;
+}
+
+.solve-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.solve-main > .board-frame {
+  flex: 1;
+}
+
+@media (max-width: 900px) {
+  .solve-layout {
+    flex-direction: column;
+    padding: 8px;
+  }
+
+  .solve-chat {
+    position: static;
+    flex-basis: auto;
+    height: 480px;
+    align-self: stretch;
+    order: 2;
+  }
+
+  .solve-chat.closed {
+    height: auto;
+  }
+
+  .solve-chat.closed .chat-tab {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .solve-chat.closed .chat-tab-text {
+    writing-mode: horizontal-tb;
+  }
+}

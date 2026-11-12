@@ -1,0 +1,128 @@
+.team-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  border: 10px solid #4a3426;
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px #2b1d14, 0 12px 30px rgba(0, 0, 0, 0.45);
+  background: #fbf5e6;
+}
+
+.team-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px 8px 14px;
+  border-bottom: 2px dashed #d8c8a6;
+}
+
+.team-chat h2 {
+  margin: 0;
+  font-family: 'Caveat', cursive;
+  font-size: 1.9em;
+  color: #2a2118;
+}
+
+.team-chat-close {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d8c8a6;
+  border-radius: 3px;
+  background: #efe2c4;
+  font-size: 1.4em;
+  line-height: 1;
+  color: #2a2118;
+  cursor: pointer;
+}
+
+.team-chat-close:hover {
+  background: #e4d2ab;
+}
+
+
+.chat-tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 0;
+  border: 6px solid #4a3426;
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px #2b1d14, 0 8px 20px rgba(0, 0, 0, 0.45);
+  background: #fbf5e6;
+  color: #2a2118;
+  cursor: pointer;
+}
+
+.chat-tab:hover {
+  background: #f3e8cf;
+}
+
+.chat-tab-icon {
+  font-size: 1.4em;
+}
+
+.chat-tab-text {
+  writing-mode: vertical-rl;
+  font-family: 'Caveat', cursive;
+  font-size: 1.6em;
+  font-weight: 600;
+}
+
+
+.chat-tab-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 11px;
+  background: #b03a2e;
+  color: #fff;
+  font-size: 0.8em;
+  font-weight: bold;
+  line-height: 22px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+
+.team-chat-box {
+  flex: 1;
+  min-height: 0;
+}
+
+.team-chat-note {
+  margin: 8px 14px;
+  font-style: italic;
+  color: #6b5a45;
+}
+
+.team-chat .cs-main-container,
+.team-chat .cs-chat-container,
+.team-chat .cs-message-list,
+.team-chat .cs-message-input,
+.team-chat .cs-message-input__content-editor-wrapper,
+.team-chat .cs-message-input__content-editor-container,
+.team-chat .cs-message-input__content-editor {
+  background: transparent;
+  border: none;
+}
+
+.team-chat .cs-message-input {
+  border-top: 2px dashed #d8c8a6;
+}
+
+.team-chat .cs-message--incoming .cs-message__content {
+  background: #efe2c4;
+}
+
+.team-chat .cs-message--outgoing .cs-message__content {
+  background: #b03a2e;
+  color: #fff;
+}

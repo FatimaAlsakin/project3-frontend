@@ -13,6 +13,7 @@ function EditCase() {
         difficulty: 'medium',
         status: 'draft'
     })
+    const [caseImageUrl, setCaseImageUrl] = useState('')
 
     const [suspects, setSuspects] = useState([])
     const [evidence, setEvidence] = useState([])
@@ -43,6 +44,7 @@ function EditCase() {
                     difficulty: foundCase.difficulty,
                     status: foundCase.status
                 })
+                setCaseImageUrl(foundCase.imageUrl || '')
 
                 setSuspects(foundSuspects.map(({ _id, name, relation, motive, alibi, relationTell, motiveTell, alibiTell, imageUrl }) => ({
                     _id, name, relation, motive, alibi,
@@ -108,7 +110,8 @@ function EditCase() {
     }
 
     function handleChange(event){
-    setFormData({...formData, [event.target.name]:event.target.value})
+    const value = event.target.type === 'file' ? event.target.files[0] : event.target.value
+    setFormData({...formData, [event.target.name]:value})
     }
 
     function addSuspectRow(){
@@ -216,6 +219,18 @@ function EditCase() {
                 <option value="solved">Solved</option>
                 <option value="closed">Closed</option>
             </select>
+            <br />
+            {caseImageUrl && !formData.image && (
+                <img src={caseImageUrl} alt={formData.title} width="150" />
+            )}
+            <br />
+            <label htmlFor="caseImage">{caseImageUrl ? 'Replace Case Picture: ' : 'Case Picture: '}</label>
+            <input
+            type="file"
+            id="caseImage"
+            name="image"
+            accept="image/*"
+            onChange={handleChange}/>
             <br />
             <h2>Suspects</h2>
             {suspects.map((suspect, index) =>

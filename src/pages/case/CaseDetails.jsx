@@ -45,11 +45,17 @@ function CaseDetails({user}) {
 
   const navigate = useNavigate()
 
+  const [loadError, setLoadError] = useState(null)
+
   async function loadCase(cId) {
-    const response = await getCase(cId)
-    setCase(response.case)
-    setSuspects(response.suspects)
-    setEvidence(response.evidence)
+    try {
+      const response = await getCase(cId)
+      setCase(response.case)
+      setSuspects(response.suspects)
+      setEvidence(response.evidence)
+    } catch (err) {
+      setLoadError(err.response?.data?.message || "Couldn't open this case.")
+    }
   }
 
   async function deleteCase(cId){
@@ -62,29 +68,32 @@ function CaseDetails({user}) {
   },[cId])
 
     useEffect(()=>{
-      loadNotes()
+      if (user) loadNotes()
     },[])
 
   return (
-    <>
+    <div className='case-details-page'>
       {Case ? (
-        <>
-        <CaseBoard Case={Case} suspects={suspects} evidence={evidance} />
+        <CaseBoard Case={Case} suspects={suspects} evidence={evidance}>
+          <button type='button' className='board-btn board-back' onClick={() => navigate(-1)} aria-label='Go back'>‹</button>
 
-            {user?.isAdmin ? (
-              <>
-                <button><Link to={`/case/${cId}/edit`}>Edit Case</Link></button>
-                <button><Link onClick={() => deleteCase(cId)}>Delete Case</Link></button>
-              </>
-            ) : null}
+          {user?.isAdmin && (
+            <>
+              <Link className='board-btn' to={`/case/${cId}/edit`}>✏️ Edit case</Link>
+              <button type='button' className='board-btn danger' onClick={() => deleteCase(cId)}>🗑️ Delete case</button>
+            </>
+          )}
 
-            {user?.teamId ? 
-            <button><Link to={`/case/${cId}/solve`}>Start Solving</Link></button> 
-            :null}
-
-        </>
-      ) : null}
-    </>
+          {user ? (
+            <Link className='board-btn primary board-solve' to={`/case/${cId}/solve`}>🔍 Start solving</Link>
+          ) : (
+            <Link className='board-btn primary board-solve' to='/sign-in'>🔒 Sign in to solve</Link>
+          )}
+        </CaseBoard>
+      ) : (
+        <p className='solve-loading'>{loadError || 'Opening the case file…'}</p>
+      )}
+    </div>
   )
 }
 

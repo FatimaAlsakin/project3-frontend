@@ -4,6 +4,8 @@ import Xarrow, { Xwrapper, useXarrow } from 'react-xarrows'
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
 import { ChatContainer, MainContainer, MessageList, Message, MessageSeparator, TypingIndicator } from '@chatscope/chat-ui-kit-react';
 import { useBoardNotes, StickyNote } from './BoardNotes'
+import { useSharedBoard } from './useSharedBoard'
+import '../styles/Board.css'
 
 let topZ = 1
 function bringToFront(ref) {
@@ -15,6 +17,8 @@ const BoardContext = createContext(null)
 
 const cardDomId = (id) => `card-${id}`
 
+const START = { x: 0, y: 0 }
+
 function useBoardCard(id) {
   const board = useContext(BoardContext)
   const updateStrings = useXarrow()
@@ -24,54 +28,163 @@ function useBoardCard(id) {
     interactive: board.interactive,
     handleClick: () => board.cardClick(id),
     stringClass: board.stringMode ? `string-mode ${board.pending === id ? 'string-pending' : ''}` : '',
+    position: board.positions[id] || START,
+    onMoved: (pos) => board.moveItem(id, pos),
   }
 }
 
-function useClickNotDrag(cardRef, onClick) {
+function useClickNotDrag(cardRef, onClick, onMoved) {
   const startPos = useRef({ x: 0, y: 0 })
   return {
     onStart: (e, data) => { startPos.current = { x: data.x, y: data.y }; bringToFront(cardRef) },
     onStop: (e, data) => {
       const moved = Math.abs(data.x - startPos.current.x) + Math.abs(data.y - startPos.current.y)
       if (moved < 5) onClick()
+      else onMoved({ x: data.x, y: data.y })
     },
   }
 }
 
-function CaseCard({ Case }) {
-  const cardRef = useRef(null)
-  const { domId, onDrag, handleClick, stringClass } = useBoardCard('case')
-  const dragProps = useClickNotDrag(cardRef, handleClick)
+const MODAL_WIDTHS = { normal: 520, wide: 680 }
+
+function useOpenCard(cardRef, size = 'normal') {
+  const [open, setOpen] = useState(false)
+  const [from, setFrom] = useState({ dx: 0, dy: 0, scale: 1 })
+
+  function openCard() {
+    const rect = cardRef.current.getBoundingClientRect()
+    const modalWidth = Math.min(MODAL_WIDTHS[size], window.innerWidth * 0.92)
+    setFrom({
+      dx: rect.left + rect.width / 2 - window.innerWidth / 2,
+      dy: rect.top + rect.height / 2 - window.innerHeight / 2,
+      scale: rect.width / modalWidth,
+    })
+    setOpen(true)
+  }
+
+  return { open, from, openCard, close: () => setOpen(false) }
+}
+
+function CardModal({ from, front, back, onClose, size = 'normal' }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
 
   return (
-    <Draggable nodeRef={cardRef} onDrag={onDrag} {...dragProps}>
-      <div id={domId} className={`case-card ${stringClass}`} ref={cardRef}>
-        <h1>{Case.title}</h1>
-        <h3>{Case.description}</h3>
-        <p><b>Location:</b> {Case.location}</p>
-        <p><b>Date:</b> {Case.incidentDate}</p>
+    <div className='card-overlay' onClick={onClose}>
+      <div
+        className={`card-modal ${size} ${front ? '' : 'no-flip'}`}
+        style={{ '--dx': `${from.dx}px`, '--dy': `${from.dy}px`, '--s': from.scale }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className='card-modal-inner'>
+          {front && <div className='card-modal-front'>{front}</div>}
+          <div className='card-modal-back'>{back}</div>
+        </div>
       </div>
-    </Draggable>
+    </div>
   )
 }
 
-function FlipCard({ id, front, back }) {
+function CardModalHeader({ title, onClose }) {
+  return (
+    <div className='card-modal-header'>
+      <h3>{title}</h3>
+      <button className='close-btn' onClick={onClose} aria-label='Close'>✕</button>
+    </div>
+  )
+}
+
+function formatIncidentDate(value) {
+  const date = new Date(value)
+  return isNaN(date) ? value : date.toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+function CaseCard({ Case }) {
   const cardRef = useRef(null)
-  const [flipped, setFlipped] = useState(false)
-  const { domId, onDrag, interactive, handleClick, stringClass } = useBoardCard(id)
+  const { domId, onDrag, interactive, handleClick, stringClass, position, onMoved } = useBoardCard('case')
+  const { open, from, openCard, close } = useOpenCard(cardRef, 'wide')
   const dragProps = useClickNotDrag(cardRef, () => {
-    if (!handleClick() && interactive) setFlipped(f => !f)
-  })
+    if (!handleClick() && interactive) openCard()
+  }, onMoved)
 
   return (
-    <Draggable nodeRef={cardRef} onDrag={onDrag} {...dragProps}>
-      <div id={domId} ref={cardRef} className={`flip-card ${flipped ? 'flipped' : ''} ${stringClass}`}>
-        <div className='flip-card-inner'>
-          <div className='flip-card-front'>{front}</div>
-          <div className='flip-card-back'>{back}</div>
+    <>
+      <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} {...dragProps}>
+        <div id={domId} className={`case-card ${open ? 'is-open' : ''} ${stringClass}`} ref={cardRef}>
+          <div className='case-paper taped'>
+            <p className='case-file-label'>📁 Case file</p>
+            <p className='case-description'>{Case.description}</p>
+            <p className='case-meta'><b>Location:</b> {Case.location}</p>
+            <p className='case-meta'><b>Date:</b> {formatIncidentDate(Case.incidentDate)}</p>
+            {interactive && <p className='case-open-hint'>Click to open the file</p>}
+          </div>
         </div>
-      </div>
-    </Draggable>
+      </Draggable>
+
+      {open && (
+        <CardModal
+          from={from}
+          size='wide'
+          onClose={close}
+          back={
+            <>
+              <CardModalHeader title={`📁 ${Case.title}`} onClose={close} />
+              <div className='card-modal-body'>
+                <p className='case-modal-description'>{Case.description}</p>
+                <p className='case-meta'><b>Location:</b> {Case.location}</p>
+                <p className='case-meta'><b>Date:</b> {formatIncidentDate(Case.incidentDate)}</p>
+              </div>
+            </>
+          }
+        />
+      )}
+    </>
+  )
+}
+
+function EvidenceCard({ item }) {
+  const cardRef = useRef(null)
+  const { domId, onDrag, interactive, handleClick, stringClass, position, onMoved } = useBoardCard(item._id)
+  const { open, from, openCard, close } = useOpenCard(cardRef)
+  const dragProps = useClickNotDrag(cardRef, () => {
+    if (!handleClick() && interactive) openCard()
+  }, onMoved)
+
+  const photo = item.imageUrl
+    ? <img src={item.imageUrl} alt={item.title} draggable={false} />
+    : <span className='evidence-empty'>{item.title}</span>
+
+  return (
+    <>
+      <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} {...dragProps}>
+        <div id={domId} ref={cardRef} className={`flip-card taped ${open ? 'is-open' : ''} ${stringClass}`}>
+          <div className='flip-card-inner'>
+            <div className='flip-card-front'>{photo}</div>
+          </div>
+        </div>
+      </Draggable>
+
+      {open && (
+        <CardModal
+          from={from}
+          onClose={close}
+          front={photo}
+          back={
+            <>
+              <CardModalHeader title={item.title} onClose={close} />
+              <div className='card-modal-body'>
+                {item.imageUrl && <img className='evidence-modal-photo' src={item.imageUrl} alt={item.title} draggable={false} />}
+                <p>{item.details}</p>
+                <p className='case-meta'><b>Found at:</b> {item.foundAt}</p>
+              </div>
+            </>
+          }
+        />
+      )}
+    </>
   )
 }
 
@@ -136,17 +249,37 @@ function SuspectChat({ suspect, evidence = [], messages, setMessages, onClose })
                   }}
                 />
               ))}
+
+              {/* the questions you can still ask, shown inside the chat as suggestions */}
+              {!isTyping && remainingQuestions.length > 0 && (
+                <Message
+                  className='question-suggestions'
+                  model={{ type: 'custom', direction: 'incoming', position: 'single' }}
+                >
+                  <Message.CustomContent>
+                    <p className='question-suggestions-title'>{messages.length ? 'Ask next:' : 'Try asking:'}</p>
+                    {remainingQuestions.map((question) => (
+                      <button
+                        key={question.key}
+                        type='button'
+                        className='question-chip'
+                        onClick={() => handleSend(question)}
+                      >
+                        {question.question}
+                      </button>
+                    ))}
+                  </Message.CustomContent>
+                </Message>
+              )}
+
+              {!isTyping && remainingQuestions.length === 0 && (
+                <MessageSeparator className='tell'>
+                  <em>You've asked everything you can.</em>
+                </MessageSeparator>
+              )}
             </MessageList>
           </ChatContainer>
         </MainContainer>
-      </div>
-
-      <div className='chat-options'>
-        {remainingQuestions.map((question) => (
-          <button key={question.key} disabled={isTyping} onClick={() => handleSend(question)}>
-            {question.question}
-          </button>
-        ))}
       </div>
     </>
   )
@@ -200,70 +333,46 @@ function AccuseBar({ suspectId }) {
   )
 }
 
-const MODAL_WIDTH = 380
 
 function SuspectCard({ suspect, evidence }) {
   const cardRef = useRef(null)
-  const [open, setOpen] = useState(false)
-  const [from, setFrom] = useState({ dx: 0, dy: 0, scale: 1 })
   const [messages, setMessages] = useState([])
-  const { domId, onDrag, interactive, handleClick, stringClass } = useBoardCard(suspect._id)
+  const { domId, onDrag, interactive, handleClick, stringClass, position, onMoved } = useBoardCard(suspect._id)
+  const { open, from, openCard, close } = useOpenCard(cardRef)
   const dragProps = useClickNotDrag(cardRef, () => {
     if (!handleClick() && interactive) openCard()
-  })
-
-  function openCard() {
-    const rect = cardRef.current.getBoundingClientRect()
-    const modalWidth = Math.min(MODAL_WIDTH, window.innerWidth * 0.9)
-    setFrom({
-      dx: rect.left + rect.width / 2 - window.innerWidth / 2,
-      dy: rect.top + rect.height / 2 - window.innerHeight / 2,
-      scale: rect.width / modalWidth,
-    })
-    setOpen(true)
-  }
-
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open])
+  }, onMoved)
 
   return (
     <>
-      <Draggable nodeRef={cardRef} onDrag={onDrag} {...dragProps}>
+      <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} {...dragProps}>
         <div id={domId} ref={cardRef} className={`suspect-thumb ${open ? 'is-open' : ''} ${stringClass}`}>
-          {suspect.imageUrl
-            ? <img src={suspect.imageUrl} alt='Suspect' draggable={false} />
-            : <span className='suspect-thumb-empty'>?</span>}
+          <div className='polaroid taped'>
+            {suspect.imageUrl
+              ? <img src={suspect.imageUrl} alt='Suspect' draggable={false} />
+              : <span className='suspect-thumb-empty'>?</span>}
+          </div>
         </div>
       </Draggable>
 
       {open && (
-        <div className='suspect-overlay' onClick={() => setOpen(false)}>
-          <div
-            className='suspect-modal'
-            style={{ '--dx': `${from.dx}px`, '--dy': `${from.dy}px`, '--s': from.scale }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className='suspect-modal-inner'>
-              <div className='suspect-modal-front'>
-                {suspect.imageUrl && <img src={suspect.imageUrl} alt='Suspect' draggable={false} />}
-              </div>
-              <div className='suspect-modal-back'>
-                <SuspectChat
-                  suspect={suspect}
-                  evidence={evidence}
-                  messages={messages}
-                  setMessages={setMessages}
-                  onClose={() => setOpen(false)}
-                />
-                <AccuseBar suspectId={suspect._id} />
-              </div>
-            </div>
-          </div>
-        </div>
+        <CardModal
+          from={from}
+          onClose={close}
+          front={suspect.imageUrl && <img src={suspect.imageUrl} alt='Suspect' draggable={false} />}
+          back={
+            <>
+              <SuspectChat
+                suspect={suspect}
+                evidence={evidence}
+                messages={messages}
+                setMessages={setMessages}
+                onClose={close}
+              />
+              <AccuseBar suspectId={suspect._id} />
+            </>
+          }
+        />
       )}
     </>
   )
@@ -272,7 +381,6 @@ function SuspectCard({ suspect, evidence }) {
 const suspectIdOf = (evidence) =>
   typeof evidence.suspectId === 'object' ? evidence.suspectId?._id : evidence.suspectId
 
-// a sticky note on the board that can be tied with strings like the cards
 function BoardNote(props) {
   const { domId, onDrag, handleClick, stringClass } = useBoardCard(props.note._id)
   const { stringMode } = useContext(BoardContext)
@@ -284,34 +392,57 @@ function BoardNote(props) {
   )
 }
 
+const isDraftId = (id) => String(id).startsWith('draft-')
+
+const noteStartSpot = (index) => ({ x: ((index % 5) - 2) * 216, y: Math.floor(index / 5) * 180 })
+
+function useBoardArea(boardRef, notesRef) {
+  const [area, setArea] = useState(null)
+
+  useEffect(() => {
+    const board = boardRef.current
+    if (!board) return
+
+    function measure() {
+      const style = getComputedStyle(board)
+      setArea({
+        width: board.clientWidth,
+        height: board.clientHeight,
+        notesTop: notesRef.current?.offsetTop ?? 0,
+        padX: parseFloat(style.paddingLeft) || 0,
+        padTop: parseFloat(style.paddingTop) || 0,
+        padBottom: parseFloat(style.paddingBottom) || 0,
+      })
+    }
+
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(board)
+    return () => observer.disconnect()
+  }, [boardRef, notesRef])
+
+  return area
+}
+
 const samePair = (s, a, b) => (s.a === a && s.b === b) || (s.a === b && s.b === a)
 
-function CaseBoard({ Case, suspects, evidence, interactive = false, user = null, onAccuse = null, progress = {} }) {
-  const storageKey = `case-strings-${Case._id}`
-  const showNotes = interactive && user
-  const boardNotes = useBoardNotes(Case._id, showNotes ? user : null)
+function CaseBoard({ Case, suspects, evidence, interactive = false, user = null, onAccuse = null, progress = {}, children }) {
+  const showNotes = Boolean(interactive && user)
+  const sharedBoard = useSharedBoard(Case._id, showNotes)
+  const { strings } = sharedBoard
+  const boardNotes = useBoardNotes(Case._id, showNotes ? user : null, sharedBoard)
 
   const [stringMode, setStringMode] = useState(false)
   const [pending, setPending] = useState(null)
-  // the player's own strings, saved per case in this browser (solve page only)
-  const [strings, setStrings] = useState(() => {
-    if (!interactive) return []
-    try {
-      const saved = JSON.parse(localStorage.getItem(storageKey)) || []
-      return saved.map(s => ({ a: s.a ?? s.source, b: s.b ?? s.target }))
-    } catch { return [] }
-  })
 
-  useEffect(() => {
-    if (!interactive) return
-    try { localStorage.setItem(storageKey, JSON.stringify(strings)) } catch {}
-  }, [strings, interactive, storageKey])
+  const boardRef = useRef(null)
+  const notesRef = useRef(null)
+  const boardArea = useBoardArea(boardRef, notesRef)
 
   const autoStrings = evidence
     .map(e => ({ a: suspectIdOf(e), b: e._id, auto: true }))
     .filter(s => s.a && suspects.some(suspect => suspect._id === s.a))
 
-  // only draw strings whose both ends are on the board (notes load after the cards)
   const onBoard = new Set([
     'case',
     ...suspects.map(s => s._id),
@@ -324,12 +455,6 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
     ...strings.filter(s => !autoStrings.some(auto => samePair(auto, s.a, s.b))),
   ].filter(s => onBoard.has(s.a) && onBoard.has(s.b))
 
-  // deleting a note also cuts its strings
-  async function removeNote(note) {
-    await boardNotes.removeNote(note)
-    setStrings(prev => prev.filter(s => s.a !== note._id && s.b !== note._id))
-  }
-
   function cardClick(id) {
     if (!stringMode) return false
     if (!pending) {
@@ -338,14 +463,14 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
       setPending(null)
     } else {
       const exists = allStrings.some(s => samePair(s, pending, id))
-      if (!exists) setStrings([...strings, { a: pending, b: id }])
+      if (!exists) sharedBoard.addString(pending, id)
       setPending(null)
     }
     return true
   }
 
   function removeString(a, b) {
-    setStrings(strings.filter(s => !(s.a === a && s.b === b)))
+    sharedBoard.removeString(a, b)
   }
 
   function toggleStringMode() {
@@ -353,34 +478,51 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
     setPending(null)
   }
 
-  const board = { interactive, cardClick, stringMode, pending, onAccuse: interactive ? onAccuse : null, progress }
+  const board = {
+    interactive, cardClick, stringMode, pending, onAccuse: interactive ? onAccuse : null, progress,
+    positions: sharedBoard.positions, moveItem: sharedBoard.moveItem,
+  }
 
   return (
     <BoardContext.Provider value={board}>
-      {interactive && (
-        <div className='board-toolbar'>
-          <button onClick={toggleStringMode} className={stringMode ? 'active' : ''}>
-            🧵 {stringMode ? 'Done connecting' : 'Connect cards'}
-          </button>
-          {strings.length > 0 && (
-            <button onClick={() => setStrings([])}>Clear strings</button>
-          )}
-          {showNotes && (
-            <span className='add-note'>
-              Add note
-              <button onClick={boardNotes.addNote} aria-label='Add note'>+</button>
-            </span>
-          )}
-          {stringMode && (
-            <span className='board-hint'>
-              {pending ? 'Now click the card or note to connect it to.' : 'Click a card or note to start a string. Click a string to remove it.'}
-            </span>
-          )}
-        </div>
-      )}
-
+      <div className='board-frame'>
       <Xwrapper>
-        <div className={`board ${stringMode ? 'editing' : ''}`}>
+        <div ref={boardRef} className={`board ${stringMode ? 'editing' : ''}`}>
+
+          <div className='board-header'>
+            <div className='board-toolbar'>
+              {interactive && (
+                <>
+                  <button className={`board-btn ${stringMode ? 'active' : ''}`} onClick={toggleStringMode}>
+                    🧵 {stringMode ? 'Done connecting' : 'Connect cards'}
+                  </button>
+                  {strings.length > 0 && (
+                    <button className='board-btn' onClick={sharedBoard.clearStrings}>✂️ Clear strings</button>
+                  )}
+                  {showNotes && (
+                    <button className='board-btn' onClick={boardNotes.addNote}>📝 Add note</button>
+                  )}
+                  {stringMode && (
+                    <p className='board-hint'>
+                      {pending ? 'Now click the card or note to connect it to.' : 'Click a card or note to start a string. Click a string to remove it.'}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+
+            <h1 className='paper-label board-title taped'>{Case.title}</h1>
+
+            <div className='board-status'>
+              {interactive && (
+                progress.solved ? <span className='stamp stamp-solved'>Solved</span>
+                : progress.failed ? <span className='stamp stamp-failed'>Case closed</span>
+                : progress.attemptsLeft != null && (
+                  <span className='paper-label small'>Attempts left: {progress.attemptsLeft} of {progress.maxAttempts}</span>
+                )
+              )}
+            </div>
+          </div>
 
           {allStrings.map(({ a, b, auto }) => (
             <Xarrow
@@ -401,7 +543,8 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
             />
           ))}
 
-          <div className='board-column'>
+          <div className='board-column board-left'>
+            <div className='board-cards'>
             {suspects.map((suspect) => (
               <SuspectCard
                 key={suspect._id}
@@ -409,53 +552,44 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
                 evidence={evidence.filter(e => suspectIdOf(e) === suspect._id)}
               />
             ))}
+            </div>
           </div>
 
           <div className='board-column board-center'>
             <CaseCard Case={Case} />
           </div>
 
-          <div className='board-column'>
+          <div className='board-column board-right'>
+            <div className='board-cards'>
             {evidence.map((item) => (
-              <FlipCard
-                key={item._id}
-                id={item._id}
-                front={
-                  <>
-                    {item.imageUrl && <img src={item.imageUrl} alt={item.title} draggable={false} />}
-                  </>
-                }
-                back={
-                  <>
-                    <h3><b>Evidence Title:</b> {item.title}</h3>
-                    <p> {item.details}</p>
-                    <br />
-                    <p><b>Found At:</b> {item.foundAt}</p>
-                  </>
-                }
-              />
+              <EvidenceCard key={item._id} item={item} />
             ))}
+            </div>
           </div>
 
           {showNotes && (
-            <div className='board-notes'>
-              {boardNotes.notes.map(note => (
+            <div ref={notesRef} className='board-notes'>
+              {boardNotes.notes.map((note, index) => (
                 <BoardNote
                   key={note._id}
                   note={note}
                   user={user}
-                  position={boardNotes.positions[note._id]}
+                  position={sharedBoard.positions[note._id] || (isDraftId(note._id) ? undefined : noteStartSpot(index))}
                   onSave={boardNotes.saveNote}
-                  onRemove={removeNote}
-                  onMove={boardNotes.moveNote}
+                  onRemove={boardNotes.removeNote}
+                  onMove={sharedBoard.moveItem}
                   onFront={bringToFront}
+                  area={boardArea}
                 />
               ))}
             </div>
           )}
 
+          {children && <div className='board-footer'>{children}</div>}
+
         </div>
       </Xwrapper>
+      </div>
     </BoardContext.Provider>
   )
 }
