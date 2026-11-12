@@ -42,7 +42,8 @@ function CreateCase() {
     }
 
     function handleChange(event){
-    setFormData({...formData, [event.target.name]:event.target.value})
+    const value = event.target.type === 'file' ? event.target.files[0] : event.target.value
+    setFormData({...formData, [event.target.name]:value})
     }
 
     function addSuspectRow(){
@@ -148,6 +149,14 @@ function CreateCase() {
                 <option value="solved">Solved</option>
                 <option value="closed">Closed</option>
             </select>
+            <br />
+            <label htmlFor="caseImage">Case Picture: </label>
+            <input
+            type="file"
+            id="caseImage"
+            name="image"
+            accept="image/*"
+            onChange={handleChange}/>
             <br />
             <h2>Suspects</h2>
             {suspects.map((suspect, index) =>
