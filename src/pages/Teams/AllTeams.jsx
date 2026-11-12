@@ -58,6 +58,7 @@ function AllTeams() {
                     <img className="folderClosed" src="/images/fileClose.png"/>
                     <img className="folderOpen" src="/images/fileOpen.png"/>
                     <h3 className="teamName">{oneTeam.name}</h3>
+                    <p className="teamMembers">Members: {oneTeam.totalMembers}</p>
                     <button onClick={() => handleJoin(oneTeam._id)} disabled={myTeam !== null}>
                         Join Team
                     </button>

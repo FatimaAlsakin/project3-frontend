@@ -1,15 +1,20 @@
 import { useState } from "react";
 import { createTeam } from "../../services/teamService"
 import { useNavigate } from "react-router";
+import "../../styles/Teams/CreateTeam.css"
 
 function CreateTeam() {
     const [formData, setFormData] = useState({
-        name: ""
+        name: "", description: "",maxMembers: ""
     })
+    const [openFile, setOpenFile] = useState(false);
     const navigate = useNavigate()
 
     function handleChange(event) {
         setFormData({ ...formData, [event.target.name]: event.target.value })
+    }
+    function handleOpen() {
+    setOpenFile(true)
     }
 
     async function handleSubmit(event) {
@@ -18,9 +23,11 @@ function CreateTeam() {
         navigate('/teams')
     }
     return (
-        <div>
-            <h1>Create Team</h1>
-            <form onSubmit={handleSubmit}>
+        <div className="createTeamPage">
+        {!openFile && (<img className="closedFile" src="/images/isClose.png" onClick={handleOpen}/>)}         
+        {openFile && <div className="openedTeamFile"> 
+                <img className="openFile" src="/images/cc.png"/>
+                <form onSubmit={handleSubmit}>
                 <label htmlFor="name">Team Name: </label>
                 <input
                     name="name"
@@ -29,8 +36,28 @@ function CreateTeam() {
                     onChange={handleChange}
                     value={formData.name}
                 />
+                <label htmlFor="description">Description: </label>
+                <textarea
+                    name="description"
+                    id="description"
+                    onChange={handleChange}
+                    value={formData.description}
+                />
+                <label htmlFor="maxMembers">Max Members: </label>
+                <input
+                    name="maxMembers"
+                    type="number"
+                    min={1}
+                    id="maxMembers"
+                    onChange={handleChange}
+                    value={formData.maxMembers}
+                />
                 <button>Create</button>
             </form>
+            </div>
+            }
+            
+
         </div>
 
     )

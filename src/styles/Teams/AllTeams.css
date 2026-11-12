@@ -170,3 +170,21 @@
     font-weight: 700;
     letter-spacing: 1px;
 }
+
+.teamMembers {
+    position: absolute;
+    bottom: 34%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+    color: #854923;
+    opacity: 0;
+    z-index: 2;
+    white-space: nowrap;
+    transition: 0.3s;
+    font-family: 'Oswald', sans-serif;
+
+}
+.oneFile:hover .teamMembers {
+    opacity: 1;
+}
