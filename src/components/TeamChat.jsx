@@ -53,7 +53,8 @@ function TeamChat({ cId, user, onClose }) {
     try {
       await live.track(async () => {
         const newMessage = await postMessage(cId, text)
-        setMessages(prev => [...prev, newMessage])
+        // the socket may have delivered this message already, so don't add it twice
+        setMessages(prev => prev.some(m => m._id === newMessage._id) ? prev : [...prev, newMessage])
       })
       setSendError(null)
     } catch (err) {
