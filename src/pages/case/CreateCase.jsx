@@ -3,6 +3,7 @@ import { postCase, postSuspect, putCase } from '../../services/caseService'
 import { useNavigate } from "react-router";
 import { addEvidence } from "../../services/evidenceService"
 import "../../styles/Cases/CreateCase.css"
+import { notyf, errorMessage } from "../../utils/notify"
 
 function CreateCase() {
 
@@ -19,13 +20,10 @@ function CreateCase() {
     const [evidence, setEvidence] = useState([])
     const [solutionIndex, setSolutionIndex] = useState(null)
 
-    const [error, setError] = useState('')
-
     const navigate = useNavigate()
 
     async function handleSubmit(event){
         event.preventDefault()
-        setError('')
         try {
             const createdCase = await postCase(formData)
             const createdSuspects = await Promise.all(suspects.map((suspect) => postSuspect(createdCase._id, suspect)))
@@ -36,9 +34,10 @@ function CreateCase() {
                 ...evidenceItem,
                 suspectId: suspectIndex === '' ? null : createdSuspects[Number(suspectIndex)]._id
             })))
+            notyf.success('Case created!')
             navigate('/cases')
         } catch (err) {
-            setError(err.response?.data?.message || err.response?.data?.err || 'Something went wrong creating the case')
+            notyf.error(errorMessage(err, 'Something went wrong creating the case'))
         }
     }
 

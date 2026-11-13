@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { signUp } from "../services/authService";
 import "../styles/Auth.css"
+import { notyf, errorMessage } from "../utils/notify";
 
 function Signup() {
   const navigate = useNavigate();
-  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -16,7 +16,6 @@ function Signup() {
   const { username, password, passwordConf } = formData;
 
   function handleChange(event){
-    setError("");
     setFormData({ ...formData, [event.target.name]: event.target.value });
 
   }
@@ -27,9 +26,10 @@ function Signup() {
     try {
       setSubmitting(true)
       await signUp(formData);
+      notyf.success('Account created! Please sign in.')
       navigate('/sign-in')
     } catch (err) {
-      setError(err.response.data.message);
+      notyf.error(errorMessage(err, "Unable to sign up. Please try again."));
       setSubmitting(false)
     }
   }
@@ -45,7 +45,6 @@ function Signup() {
       <p className="authSubtitle">
         Create your account and start investigating
       </p>
-      <p className="error">{error}</p>
       <form onSubmit={handleSubmit}>
         <div className="authField">
           <label htmlFor="username">Username:</label>

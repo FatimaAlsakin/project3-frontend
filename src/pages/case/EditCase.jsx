@@ -3,6 +3,8 @@ import { getCase, putCase, postSuspect, putSuspect, delSuspect } from '../../ser
 import { useNavigate, useParams } from "react-router";
 import { addEvidence, editEvidence, deleteEvidence } from "../../services/evidenceService"
 import "../../styles/Cases/CreateCase.css"
+import { notyf, errorMessage } from "../../utils/notify"
+
 function EditCase() {
 
     const [formData, setFormData] = useState({
@@ -77,7 +79,6 @@ function EditCase() {
 
     async function handleSubmit(event){
         event.preventDefault()
-        setError('')
         try {
             const savedSuspects = await Promise.all(suspects.map(({ _id, ...suspect }) =>
                 _id ? putSuspect(cId, _id, suspect) : postSuspect(cId, suspect)
@@ -103,9 +104,10 @@ function EditCase() {
                 ...originalEvidenceIds.filter((id) => !keptEvidenceIds.includes(id)).map((id) => deleteEvidence(id))
             ])
 
+            notyf.success('Case saved!')
             navigate(`/case/${cId}`)
         } catch (err) {
-            setError(err.response?.data?.message || err.response?.data?.err || 'Something went wrong saving the case')
+            notyf.error(errorMessage(err, 'Something went wrong saving the case'))
         }
     }
 

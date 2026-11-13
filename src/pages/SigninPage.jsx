@@ -6,10 +6,10 @@ import { useNavigate } from 'react-router';
 import { signIn } from '../services/authService';
 
 import "../styles/Auth.css";
+import { notyf, errorMessage } from "../utils/notify";
 
 const SignInForm = ({ setUser }) => {
   const navigate = useNavigate();
-  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -25,9 +25,10 @@ const SignInForm = ({ setUser }) => {
       const signedInUser = await signIn(formData);
 
       setUser(signedInUser);
+      notyf.success('Welcome back!');
       navigate('/dashboard');
     } catch (err) {
-      setError(err?.response?.data?.message || 'Unable to sign in. Please try again.');
+      notyf.error(errorMessage(err, 'Unable to sign in. Please try again.'));
     }
   };
 
@@ -38,7 +39,6 @@ const SignInForm = ({ setUser }) => {
       <p className="authSubtitle">
         Access your account and continue the investigation
       </p>
-      <p className='error'>{error}</p>
       <form autoComplete='off' onSubmit={handleSubmit}>
         <div className='authField'>
           <label htmlFor='email'>Username:</label>
