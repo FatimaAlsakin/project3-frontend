@@ -15,6 +15,8 @@ import CreateCase from "./pages/case/CreateCase";
 import EditNote from "./pages/EditNote";
 import SloveAttepmt from "./pages/sloveAttempt/SolveAttempt";
 import EditCase from "./pages/case/EditCase";
+import AdminSidebar from "./components/AdminSidebar";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   function  getUserFromToken (){
@@ -42,15 +44,24 @@ function App() {
   }
 
   return (
-    <div>
+    <div className={user && user.isAdmin === true ? 'adminLayout' : ''}>
       <Navbar user={user} handleLogout={handleLogout} />
+      {user && user.isAdmin === true && (
+          <AdminSidebar handleLogout={handleLogout} />
+      )}
       <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="/sign-up" element={<SignupPage />} />
         <Route path="/sign-in" element={<SignInPage setUser={setUser} />} />
         <Route
           path="/dashboard"
-          element={user ? <Dashboard user={user} /> : <Navigate to="/sign-in" />}
+          element={
+            user
+              ? user.isAdmin
+                ? <AdminDashboard user={user} />
+                : <Dashboard user={user} />
+              : <Navigate to="/sign-in" />
+          }
         />
         <Route path="/teams" element={user ? <AllTeams /> : <Navigate to="/sign-in" />} />
         <Route path="/teams/create" element={user ? <CreateTeam /> : <Navigate to="/sign-in" />} />

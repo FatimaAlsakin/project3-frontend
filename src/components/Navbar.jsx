@@ -1,6 +1,9 @@
 import { Link } from 'react-router'
 import '../styles/Navbar.css'
 function Navbar({ user, handleLogout }) {
+  if (user && user.isAdmin === true) {
+    return null
+  }
   return (
       <nav className='navbar'>
       <div className='navLogo'>
