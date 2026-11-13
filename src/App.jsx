@@ -37,6 +37,7 @@ function App() {
 
 
   const [user, setUser] = useState(getUserFromToken());
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   function handleLogout() {
     logout();
@@ -44,10 +45,10 @@ function App() {
   }
 
   return (
-    <div className={user && user.isAdmin === true ? 'adminLayout' : ''}>
+    <div className={user && user.isAdmin === true ? (sidebarOpen ? 'adminLayout' : 'adminLayout adminLayoutCollapsed') : ''}>
       <Navbar user={user} handleLogout={handleLogout} />
       {user && user.isAdmin === true && (
-          <AdminSidebar handleLogout={handleLogout} />
+          <AdminSidebar handleLogout={handleLogout} isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
       )}
       <Routes>
         <Route path="/" element={<Homepage />} />

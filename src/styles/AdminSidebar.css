@@ -16,6 +16,37 @@
     box-sizing: border-box;
     z-index: 100;
     font-family: 'Oswald', sans-serif;
+    transition: transform 0.3s ease;
+}
+
+.adminSidebarHidden {
+    transform: translateX(-100%);
+}
+
+.adminSidebarToggle {
+    position: fixed;
+    top: 16px;
+    left: 214px;
+    z-index: 101;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid #c84a62;
+    border-radius: 6px;
+    background-color: #1b171b;
+    color: #c84a62;
+    font-size: 16px;
+    cursor: pointer;
+    transition: left 0.3s ease, background-color 0.3s;
+}
+
+.adminSidebarToggle:hover {
+    background-color: #c84a62;
+    color: white;
+}
+
+.adminSidebarToggleClosed {
+    left: 12px;
 }
 
 .adminLogo {
@@ -79,4 +110,9 @@
 .adminLayout {
     padding-left: 260px;
     min-height: 100vh;
+    transition: padding-left 0.3s ease;
+}
+
+.adminLayoutCollapsed {
+    padding-left: 0;
 }

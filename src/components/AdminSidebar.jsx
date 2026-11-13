@@ -1,10 +1,17 @@
 import { Link } from 'react-router'
 import "../styles/AdminSidebar.css"
 
-function AdminSidebar({handleLogout}) {
+function AdminSidebar({ handleLogout, isOpen, onToggle }) {
   return (
     <div>
-      <div className="adminSidebar">
+      <button
+        className={isOpen ? 'adminSidebarToggle' : 'adminSidebarToggle adminSidebarToggleClosed'}
+        onClick={onToggle}
+        aria-label={isOpen ? 'Hide sidebar' : 'Show sidebar'}
+      >
+        {isOpen ? '❮' : '☰'}
+      </button>
+      <div className={isOpen ? 'adminSidebar' : 'adminSidebar adminSidebarHidden'}>
         <Link to="/" className="adminLogo"></Link>
         <p>GAME MASTER</p>
             <div className="adminSidebarLinks">
