@@ -94,7 +94,6 @@ function CreateCase() {
         <h1>CREATE NEW CASE </h1>
         <p>Every mystery begins with a case file</p>
         </div>
-        {error && <p className="error">{error}</p>}
         <form onSubmit={handleSubmit}>
             <section className="caseInformation">
             <div className="caseInformationHeader">
