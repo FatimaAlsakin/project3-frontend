@@ -1,0 +1,301 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap');
+
+.createCasePage {
+    min-height: 100vh;
+    background-color: #100d10;
+    color: white;
+    padding: 50px 6%;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.createCasePage * {
+    box-sizing: border-box;
+}
+
+.createCasePage form {
+    max-width: 1200px;
+    margin: auto;
+}
+
+.createCaseHeader {
+    max-width: 1200px;
+    margin: 0 auto 30px;
+}
+
+.createCaseHeader h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 50px;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.createCaseHeader p {
+    color: #aaa0a4;
+    font-size: 13px;
+}
+
+.caseInformation,
+.suspectsSection,
+.evidenceSection {
+    background-color: #21191d;
+    border: 1px solid #483038;
+    border-radius: 10px;
+    padding: 30px;
+}
+
+.caseInformation {
+    margin-bottom: 25px;
+}
+
+.caseInformationHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #483038;
+    padding-bottom: 20px;
+    margin-bottom: 25px;
+}
+
+.caseInformationHeader h2,
+.suspectsSection h2,
+.evidenceSection h2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 24px;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.caseInformationHeader span {
+    color: #e18d9d;
+    background-color: #392029;
+    border: 1px solid #843341;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 11px;
+}
+
+.caseRow {
+    display: flex;
+    gap: 20px;
+}
+
+.caseRow .caseField {
+    flex: 1;
+}
+
+.caseField {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    min-width: 0;
+}
+
+.caseField label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #d4c8cc;
+    margin-bottom: 10px;
+}
+
+.caseField input,
+.caseField textarea,
+.caseField select {
+    width: 100%;
+    padding: 12px;
+    background-color: #110e11;
+    border: 1px solid #49353d;
+    border-radius: 5px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+}
+
+.caseField textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+.caseField input:focus,
+.caseField textarea:focus,
+.caseField select:focus {
+    outline: none;
+    border-color: #c0475c;
+}
+
+.caseField input[type="date"],
+.caseField select {
+    color-scheme: dark;
+}
+
+.caseField input[type="file"] {
+    cursor: pointer;
+}
+
+.caseExtras {
+    display: flex;
+    gap: 25px;
+    align-items: flex-start;
+    margin-bottom: 30px;
+}
+
+.suspectsSection,
+.evidenceSection {
+    flex: 1;
+    min-width: 0;
+}
+
+.suspectsSection h2,
+.evidenceSection h2 {
+    border-bottom: 1px solid #483038;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.suspectCard,
+.evidenceCard {
+    background-color: #161115;
+    border: 1px solid #51333d;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.solutionField {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.solutionField input {
+    accent-color: #a92942;
+    width: 17px;
+    height: 17px;
+}
+
+.solutionField label {
+    font-size: 12px;
+    color: #e5d7dc;
+}
+
+.addSuspectBtn,
+.addEvidenceBtn {
+    width: 100%;
+    padding: 15px;
+    background-color: #392029;
+    color: #e49baa;
+    border: 1px dashed #9c4658;
+    border-radius: 6px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.addSuspectBtn:hover,
+.addEvidenceBtn:hover {
+    background-color: #592b37;
+    color: white;
+}
+
+.removeSuspectBtn,
+.removeEvidenceBtn {
+    background-color: transparent;
+    color: #e77b8e;
+    border: 1px solid #7e3443;
+    border-radius: 5px;
+    padding: 10px 15px;
+    cursor: pointer;
+}
+
+.removeSuspectBtn:hover,
+.removeEvidenceBtn:hover {
+    background-color: #7c2537;
+    color: white;
+}
+
+.createCaseBtn {
+    display: block;
+    width: 240px;
+    padding: 15px;
+    margin-left: auto;
+    background-color: #a82640;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    cursor: pointer;
+}
+
+.createCaseBtn:hover {
+    background-color: #c3304d;
+}
+
+.createCasePage .error {
+    max-width: 1200px;
+    margin: 0 auto 20px;
+    padding: 15px;
+    background-color: #392029;
+    color: #ff9eac;
+    border: 1px solid #a53c4e;
+    border-radius: 5px;
+}
+
+@media (max-width: 900px) {
+    .caseExtras {
+        flex-direction: column;
+    }
+
+    .suspectsSection,
+    .evidenceSection {
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .createCasePage {
+        padding: 30px 15px;
+    }
+
+    .createCaseHeader h1 {
+        font-size: 36px;
+    }
+
+    .caseInformation,
+    .suspectsSection,
+    .evidenceSection {
+        padding: 20px;
+    }
+
+    .caseRow {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .createCaseBtn {
+        width: 100%;
+    }
+}
+
+.caseField input[type="file"] {
+    padding: 10px;
+    cursor: pointer;
+    color: #bdb1b5;
+}
+
+.caseField input[type="file"]::file-selector-button {
+    background-color: #392129;
+    color: #f0dce1;
+    border: 1px solid #73414c;
+    border-radius: 5px;
+    padding: 10px 15px;
+    margin-right: 12px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.caseField input[type="file"]::file-selector-button:hover {
+    background-color: #592b37;
+}

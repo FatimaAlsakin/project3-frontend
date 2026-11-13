@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { postCase, postSuspect, putCase } from '../../services/caseService'
 import { useNavigate } from "react-router";
 import { addEvidence } from "../../services/evidenceService"
+import "../../styles/Cases/CreateCase.css"
 
 function CreateCase() {
 
@@ -89,10 +90,20 @@ function CreateCase() {
     }
 
   return (
-    <>
-        <h1>Create New Case </h1>
+    <main className="createCasePage">
+        <div className="createCaseHeader">
+        <h1>CREATE NEW CASE </h1>
+        <p>Every mystery begins with a case file</p>
+        </div>
         {error && <p className="error">{error}</p>}
         <form onSubmit={handleSubmit}>
+            <section className="caseInformation">
+            <div className="caseInformationHeader">
+                <h2>CASE INFORMATION</h2>
+                <span>NEW FILE</span>
+            </div>
+            <div className="caseRow">
+                <div className="caseField">
             <label htmlFor="title">Title: </label>
             <input 
             type="text" 
@@ -101,7 +112,20 @@ function CreateCase() {
             required
             onChange={handleChange}
             value={formData.title}/>
-            <br />
+                </div>
+
+                <div className="caseField">
+            <label htmlFor="location">Location: </label>
+            <input 
+            type="text"
+            id="location"
+            name="location"
+            onChange={handleChange}
+            value={formData.location}/>
+                </div>
+            </div>
+
+            <div className="caseField">
             <label htmlFor="description">Description: </label>
             <textarea 
             type="text"
@@ -110,15 +134,10 @@ function CreateCase() {
             required
             onChange={handleChange}
             value={formData.description}/>
-            <br />
-            <label htmlFor="location">Location: </label>
-            <input 
-            type="text"
-            id="location"
-            name="location"
-            onChange={handleChange}
-            value={formData.location}/>
-            <br />
+            </div>
+
+            <div className="caseRow">
+                <div className="caseField">
             <label htmlFor="incidentDate">Incident Date: </label>
             <input
             type="date"
@@ -126,7 +145,9 @@ function CreateCase() {
             name="incidentDate"
             onChange={handleChange}
             value={formData.incidentDate}/>
-            <br />
+            </div>
+
+            <div className="caseField">
             <label htmlFor="difficulty">Difficulty: </label>
             <select 
             id="difficulty"
@@ -137,7 +158,9 @@ function CreateCase() {
                 <option value="medium">Medium</option>
                 <option value="hard">Hard</option>
             </select>
-            <br />
+            </div>
+
+                <div className="caseField">
             <label htmlFor="status">Status: </label>
             <select 
             id="status"
@@ -149,7 +172,10 @@ function CreateCase() {
                 <option value="solved">Solved</option>
                 <option value="closed">Closed</option>
             </select>
-            <br />
+                </div>
+            </div>
+
+            <div className="caseField">
             <label htmlFor="caseImage">Case Picture: </label>
             <input
             type="file"
@@ -157,10 +183,14 @@ function CreateCase() {
             name="image"
             accept="image/*"
             onChange={handleChange}/>
-            <br />
-            <h2>Suspects</h2>
+            </div>
+            </section>
+            <div className="caseExtras">
+            <section className="suspectsSection" >
+            <h2>SUSPECTS</h2>
             {suspects.map((suspect, index) =>
-                <div key={index}>
+                <div className='suspectCard' key={index}>
+                     <div className="caseField">
                     <label htmlFor={`name${index}`}>Suspect Name: </label>
                     <input
                     type="text"
@@ -169,7 +199,8 @@ function CreateCase() {
                     required
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.name}/>
-                    <br />
+                    </div>
+                    <div className='caseField'>
                     <label htmlFor={`relation${index}`}>Relation: </label>
                     <input
                     type="text"
@@ -178,7 +209,8 @@ function CreateCase() {
                     required
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.relation}/>
-                    <br />
+                    </div>
+                    <div className='caseField'>
                     <label htmlFor={`relationTell${index}`}>Body Language (relation): </label>
                     <input
                     type="text"
@@ -187,7 +219,8 @@ function CreateCase() {
                     placeholder="e.g. Smiles warmly"
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.relationTell}/>
-                    <br />
+                    </div>
+                    <div className='caseField'>
                     <label htmlFor={`motive${index}`}>Motive: </label>
                     <textarea
                     id={`motive${index}`}
@@ -195,7 +228,8 @@ function CreateCase() {
                     required
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.motive}/>
-                    <br />
+                    </div>
+                    <div className='caseField'>
                     <label htmlFor={`motiveTell${index}`}>Body Language (motive): </label>
                     <input
                     type="text"
@@ -204,7 +238,8 @@ function CreateCase() {
                     placeholder="e.g. Crosses arms defensively"
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.motiveTell}/>
-                    <br />
+                    </div>
+                    <div className='caseField'>
                     <label htmlFor={`alibi${index}`}>Alibi: </label>
                     <textarea
                     id={`alibi${index}`}
@@ -212,7 +247,8 @@ function CreateCase() {
                     required
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.alibi}/>
-                    <br />
+                    </div>
+                    <div className='caseField'>
                     <label htmlFor={`alibiTell${index}`}>Body Language (alibi): </label>
                     <input
                     type="text"
@@ -221,7 +257,8 @@ function CreateCase() {
                     placeholder="e.g. Glances at the door before answering"
                     onChange={(event) => handleSuspectChange(index, event)}
                     value={suspect.alibiTell}/>
-                    <br />
+                    </div>
+                    <div className='caseField'>
                     <label htmlFor={`suspectImage${index}`}>Photo: </label>
                     <input
                     type="file"
@@ -230,7 +267,8 @@ function CreateCase() {
                     accept="image/*"
                     required
                     onChange={(event) => handleSuspectChange(index, event)}/>
-                    <br />
+                   </div>
+                   <div className="solutionField">
                     <label htmlFor={`solution${index}`}>Solution Suspect: </label>
                     <input
                     type="checkbox"
@@ -238,15 +276,18 @@ function CreateCase() {
                     checked={solutionIndex === index}
                     disabled={solutionIndex !== null && solutionIndex !== index}
                     onChange={(event) => setSolutionIndex(event.target.checked ? index : null)}/>
-                    <br />
-                    <button type="button" onClick={() => removeSuspectRow(index)}>Remove Suspect</button>
+                    </div>
+                    <button className="removeSuspectBtn" type="button" onClick={() => removeSuspectRow(index)}>Remove Suspect</button>
                 </div>
             )}
-            <button type="button" onClick={addSuspectRow}>Add Suspect</button>
-            <br />
-            <h2>Evidence</h2>
+            <button className="addSuspectBtn" type="button" onClick={addSuspectRow}>+ Add Suspect</button>
+            </section>
+            
+            <section className="evidenceSection">
+            <h2>EVIDENCE</h2>
             {evidence.map((evidenceItem, index) =>
-                <div key={index}>
+                <div className='evidenceCard' key={index}>
+                    <div className='caseField'>
                     <label htmlFor={`label${index}`}>Label: </label>
                     <input
                     type="text"
@@ -255,7 +296,8 @@ function CreateCase() {
                     required
                     onChange={(event) => handleEvidenceChange(index, event)}
                     value={evidenceItem.label}/>
-                    <br />
+                    </div>
+                    <div className='caseField'>
                     <label htmlFor={`title${index}`}>Title: </label>
                     <input
                     type="text"
@@ -264,7 +306,8 @@ function CreateCase() {
                     required
                     onChange={(event) => handleEvidenceChange(index, event)}
                     value={evidenceItem.title}/>
-                    <br />
+                    </div>
+                    <div className='caseField'>
                     <label htmlFor={`image${index}`}>Image: </label>
                     <input
                     type="file"
@@ -273,7 +316,8 @@ function CreateCase() {
                     accept="image/*"
                     required
                     onChange={(event) => handleEvidenceChange(index, event)}/>
-                    <br />
+                    </div>
+                    <div className='caseField'>
                     <label htmlFor={`details${index}`}>Details: </label>
                     <textarea
                     id={`details${index}`}
@@ -281,7 +325,8 @@ function CreateCase() {
                     required
                     onChange={(event) => handleEvidenceChange(index, event)}
                     value={evidenceItem.details}/>
-                    <br />
+                    </div>
+                    <div className='caseField'>
                     <label htmlFor={`foundAt${index}`}>Found At: </label>
                     <input
                     type="text"
@@ -289,7 +334,8 @@ function CreateCase() {
                     name="foundAt"
                     onChange={(event) => handleEvidenceChange(index, event)}
                     value={evidenceItem.foundAt}/>
-                    <br />
+                    </div>
+                    <div className='caseField'>
                     <label htmlFor={`suspectIndex${index}`}>Suspect: </label>
                     <select
                     id={`suspectIndex${index}`}
@@ -301,9 +347,10 @@ function CreateCase() {
                             <option key={suspectIndex} value={suspectIndex}>{suspect.name || `Suspect ${suspectIndex + 1}`}</option>
                         )}
                     </select>
-                    <br />
+                    </div>
                     {evidenceItem.suspectIndex !== '' && (
                         <>
+                        <div className='caseField'>
                             <label htmlFor={`suspectResponse${index}`}>Suspect's answer about this: </label>
                             <textarea
                             id={`suspectResponse${index}`}
@@ -311,7 +358,8 @@ function CreateCase() {
                             placeholder="e.g. That's not my glove. I've never seen it before."
                             onChange={(event) => handleEvidenceChange(index, event)}
                             value={evidenceItem.suspectResponse}/>
-                            <br />
+                        </div>
+                        <div className='caseField'>
                             <label htmlFor={`responseTell${index}`}>Body Language (answer): </label>
                             <input
                             type="text"
@@ -320,17 +368,18 @@ function CreateCase() {
                             placeholder="e.g. Hides their hands under the table"
                             onChange={(event) => handleEvidenceChange(index, event)}
                             value={evidenceItem.responseTell}/>
-                            <br />
+                            </div>
                         </>
                     )}
-                    <button type="button" onClick={() => removeEvidenceRow(index)}>Remove Evidence</button>
+                    <button className="removeEvidenceBtn" type="button" onClick={() => removeEvidenceRow(index)}>Remove Evidence</button>
                 </div>
             )}
-            <button type="button" onClick={addEvidenceRow}>Add Evidence</button>
-            <br />
-            <button>Create Case</button>
+            <button className="addEvidenceBtn" type="button" onClick={addEvidenceRow}>+ Add Evidence</button>
+            </section>
+            </div>
+            <button className="createCaseBtn">CREATE CASE</button>
         </form>
-    </>
+    </main>
   )
 }
 
