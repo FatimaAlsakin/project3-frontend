@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createTeam } from "../../services/teamService"
 import { useNavigate } from "react-router";
 import "../../styles/Teams/CreateTeam.css"
+import { notyf, errorMessage } from "../../utils/notify"
 
 function CreateTeam() {
     const [formData, setFormData] = useState({
@@ -19,8 +20,13 @@ function CreateTeam() {
 
     async function handleSubmit(event) {
         event.preventDefault()
-        await createTeam(formData)
-        navigate('/teams')
+        try {
+            await createTeam({ ...formData, maxMembers: Number(formData.maxMembers) })
+            notyf.success('Team created!')
+            navigate('/teams')
+        } catch (err) {
+            notyf.error(errorMessage(err, "Could not create team. Please try again."))
+        }
     }
     return (
         <div className="createTeamPage">

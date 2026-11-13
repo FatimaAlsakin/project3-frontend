@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { getAllTeams, joinTeam, getMyTeam } from "../../services/teamService";
 import { Link } from "react-router"
 import "../../styles/Teams/AllTeams.css"
+import { notyf, errorMessage } from "../../utils/notify"
 
 function AllTeams() {
 
@@ -34,10 +35,9 @@ function AllTeams() {
         try {
             await joinTeam(teamId)
             await loadMyTeam()
-            alert("Joined team successfully!")
+            notyf.success("Joined team successfully!")
         } catch (error) {
-            console.log(error)
-            alert("Failed to join team")
+            notyf.error(errorMessage(error, "Failed to join team"))
         }
     }
     return (
