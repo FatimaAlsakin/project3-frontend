@@ -1,38 +1,100 @@
 import { getDashboard } from "../services/teamService"
 import { useState, useEffect } from "react"
+import { Link, useNavigate } from "react-router"
+import "../styles/Dashboard.css"
+
+function formatDate(date) {
+  return new Date(date).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
+}
+
+function SolvedCases({ solvedCases }) {
+  if (solvedCases.length === 0) {
+    return <p className="dashboardEmpty">No cases solved yet.</p>
+  }
+  return (
+    <div className="dashboardCases">
+      {solvedCases.map(({ case: oneCase, solvedBy, solvedAt }) => (
+        <Link to={`/case/${oneCase._id}`} className="dashboardCaseCard" key={oneCase._id}>
+          <h4>{oneCase.title}</h4>
+          <p>{oneCase.description}</p>
+          <span className="dashboardMeta">
+            Solved {formatDate(solvedAt)}{solvedBy ? ` by ${solvedBy}` : ""}
+          </span>
+        </Link>
+      ))}
+    </div>
+  )
+}
+
 function Dashboard({ user }) {
-  const [cases, setCases] = useState([])
-  const [team, setTeam] = useState(null)
+  const [currentTeam, setCurrentTeam] = useState(null)
+  const [pastTeams, setPastTeams] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const navigate = useNavigate()
 
-
-  async function loadDashboard(){
-    const response = await getDashboard()
-    setCases(response.cases)
-    setTeam(response.team)
-
+  async function loadDashboard() {
+    try {
+      const response = await getDashboard()
+      setCurrentTeam(response.currentTeam)
+      setPastTeams(response.pastTeams)
+    } catch (err) {
+      setError(err.response?.data?.message || "Couldn't load your dashboard.")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     loadDashboard()
-  },[])
+  }, [])
 
   return (
-    <div>
-        <h1>Welcome {user.username}</h1>
+    <main className="dashboardPage">
+      <h1>Welcome, {user.username}</h1>
 
-      {team ? <>( <h1>{team.name}</h1>)</> : <h2>You are NOT in tean</h2>}
+      {loading && <p className="dashboardEmpty">Loading...</p>}
+      {error && <p className="error">{error}</p>}
 
-      {cases.map((oneCase)=>(
-    <div key={oneCase._id}>
-            <h3>{oneCase.title}</h3>
-            <p>{oneCase.description}</p>
-          </div>
+      {!loading && !error && (
+        <>
+          <section className="dashboardSection">
+            <h2>My Team</h2>
+            {currentTeam ? (
+              <>
+                <div className="dashboardTeamHeader">
+                  <h3>{currentTeam.team?.name || "Deleted team"}</h3>
+                  <button className="dashboardButton" onClick={() => navigate("/teams/my-team")}>View My Team</button>
+                </div>
+                <p className="dashboardMembers">
+                  Members: {currentTeam.members.map((member) => member.username).join(", ")}
+                </p>
+                <h4 className="dashboardSubheading">Cases solved with this team ({currentTeam.solvedCases.length})</h4>
+                <SolvedCases solvedCases={currentTeam.solvedCases} />
+              </>
+            ) : (
+              <p className="dashboardEmpty">
+                You're not in a team right now. <Link to="/teams">Find a team</Link>
+              </p>
+            )}
+          </section>
 
-
-        
-      ))}
-        
-    </div>
+          {pastTeams.length > 0 && (
+            <section className="dashboardSection">
+              <h2>Past Teams</h2>
+              {pastTeams.map(({ team, leftAt, solvedCases }, index) => (
+                <div className="dashboardPastTeam" key={team?._id || index}>
+                  <h3>{team?.name || "Deleted team"}</h3>
+                  {leftAt && <p className="dashboardMeta">Left {formatDate(leftAt)}</p>}
+                  <h4 className="dashboardSubheading">Cases solved with this team ({solvedCases.length})</h4>
+                  <SolvedCases solvedCases={solvedCases} />
+                </div>
+              ))}
+            </section>
+          )}
+        </>
+      )}
+    </main>
   )
 }
 

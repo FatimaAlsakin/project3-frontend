@@ -58,13 +58,13 @@ export const leaveTeam = async () => {
 }
 
 
-//Leave a team
+//Current team + past teams, each with the cases solved while the user was a member
 export const getDashboard = async () => {
     try {
-        const response = await api.put('/teams/dashboard')
+        const response = await api.get('/teams/dashboard')
         return response.data
     } catch (error) {
-        console.error('Error leaving team:', error)
+        console.error('Error fetching dashboard:', error)
         throw error
     }
 }
