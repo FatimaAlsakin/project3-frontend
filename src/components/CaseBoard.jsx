@@ -116,7 +116,7 @@ function CaseCard({ Case }) {
         <div id={domId} className={`case-card ${open ? 'is-open' : ''} ${stringClass}`} ref={cardRef}>
           <div className='case-paper taped'>
             <p className='case-file-label'>📁 Case file</p>
-            <p className='case-description'>{Case.description}</p>
+            {Case.overview && <p className='case-description'>{Case.overview}</p>}
             <p className='case-meta'><b>Location:</b> {Case.location}</p>
             <p className='case-meta'><b>Date:</b> {formatIncidentDate(Case.incidentDate)}</p>
             {interactive && <p className='case-open-hint'>Click to open the file</p>}
@@ -133,7 +133,7 @@ function CaseCard({ Case }) {
             <>
               <CardModalHeader title={`📁 ${Case.title}`} onClose={close} />
               <div className='card-modal-body'>
-                <p className='case-modal-description'>{Case.description}</p>
+                {Case.overview && <p className='case-modal-description'>{Case.overview}</p>}
                 <p className='case-meta'><b>Location:</b> {Case.location}</p>
                 <p className='case-meta'><b>Date:</b> {formatIncidentDate(Case.incidentDate)}</p>
               </div>

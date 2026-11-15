@@ -10,6 +10,7 @@ function CreateCase() {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
+        overview: '',
         location: '',
         incidentDate: '',
         difficulty: 'medium',
@@ -132,6 +133,15 @@ function CreateCase() {
             required
             onChange={handleChange}
             value={formData.description}/>
+            </div>
+
+            <div className="caseField">
+            <label htmlFor="overview">Overview: </label>
+            <textarea
+            id="overview"
+            name="overview"
+            onChange={handleChange}
+            value={formData.overview}/>
             </div>
 
             <div className="caseRow">

@@ -10,6 +10,7 @@ function EditCase() {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
+        overview: '',
         location: '',
         incidentDate: '',
         difficulty: 'medium',
@@ -41,6 +42,7 @@ function EditCase() {
                 setFormData({
                     title: foundCase.title,
                     description: foundCase.description,
+                    overview: foundCase.overview || '',
                     location: foundCase.location,
                     incidentDate: foundCase.incidentDate ? foundCase.incidentDate.slice(0, 10) : '',
                     difficulty: foundCase.difficulty,
@@ -204,6 +206,15 @@ function EditCase() {
             required
             onChange={handleChange}
             value={formData.description}/>
+            </div>
+
+            <div className="caseField">
+            <label htmlFor="overview">Overview: </label>
+            <textarea
+            id="overview"
+            name="overview"
+            onChange={handleChange}
+            value={formData.overview}/>
             </div>
             <div className="caseRow">
             <div className="caseField">
