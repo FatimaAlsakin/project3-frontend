@@ -114,6 +114,22 @@
     border-color: #c84a62;
 }
 
+.dashboardCaseCard p.dashboardStatus {
+    margin: 10px 0 0;
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.dashboardCaseCard p.dashboardStatus.solved {
+    color: #4ade80;
+}
+
+.dashboardCaseCard p.dashboardStatus.closed {
+    color: #f87171;
+}
+
 .dashboardCaseCard h4 {
     margin: 0 0 8px;
     font-size: 17px;
