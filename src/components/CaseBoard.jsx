@@ -206,8 +206,7 @@ function SuspectChat({ suspect, evidence = [], messages, setMessages, onClose })
 
   const remainingQuestions = questions.filter(q => !messages.some(m => m.key === q.key))
 
-  const knowsName = messages.some(m => m.key === "name" && m.sender === "suspect")
-  const displayName = knowsName ? suspect.name : "The suspect"
+  const displayName = suspect.name
 
   function handleSend(question) {
     setMessages(prev => [...prev, { key: question.key, text: question.question, sender: "user" }])
@@ -226,8 +225,8 @@ function SuspectChat({ suspect, evidence = [], messages, setMessages, onClose })
   return (
     <>
       <div className='suspect-header'>
-        {suspect.imageUrl && <img src={suspect.imageUrl} alt={displayName} draggable={false} />}
-        <h3>{displayName}</h3>
+        {suspect.imageUrl && <img src={suspect.imageUrl} alt={suspect.name} draggable={false} />}
+        <h3>{suspect.name}</h3>
         <button className='close-btn' onClick={onClose} aria-label='Close'>✕</button>
       </div>
 
@@ -349,8 +348,9 @@ function SuspectCard({ suspect, evidence }) {
         <div id={domId} ref={cardRef} className={`suspect-thumb ${open ? 'is-open' : ''} ${stringClass}`}>
           <div className='polaroid taped'>
             {suspect.imageUrl
-              ? <img src={suspect.imageUrl} alt='Suspect' draggable={false} />
+              ? <img src={suspect.imageUrl} alt={suspect.name} draggable={false} />
               : <span className='suspect-thumb-empty'>?</span>}
+            <span className='polaroid-caption'>{suspect.name}</span>
           </div>
         </div>
       </Draggable>

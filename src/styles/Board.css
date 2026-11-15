@@ -250,6 +250,22 @@
   object-fit: cover;
 }
 
+.polaroid-caption {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 3px;
+  font-family: 'Caveat', cursive;
+  font-size: 1.3em;
+  line-height: 1.2;
+  color: #2b2118;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
 .suspect-thumb-empty {
   display: flex;
   align-items: center;
