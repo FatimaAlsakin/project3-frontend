@@ -316,14 +316,23 @@ function SolvedReveal({ culprit }) {
   )
 }
 
-function AccuseBar({ suspectId }) {
+function AccuseBar({ suspectId, suspectName }) {
   const { onAccuse, progress } = useContext(BoardContext)
-  const { solved, failed, attemptsLeft } = progress
+  const { solved, failed, attemptsLeft, maxAttempts } = progress
   const [confirming, setConfirming] = useState(false)
   const [busy, setBusy] = useState(false)
   const [outcome, setOutcome] = useState(null)
 
   if (!onAccuse) return null
+
+  function startAccuse() {
+    setOutcome(null)
+    setConfirming(true)
+  }
+
+  function cancelAccuse() {
+    setConfirming(false)
+  }
 
   async function confirmAccuse() {
     setBusy(true)
@@ -339,18 +348,38 @@ function AccuseBar({ suspectId }) {
       ) : failed ? (
         <CulpritReveal culprit={outcome?.answer || progress.answer} />
       ) : confirming ? (
-        <div className='accuse-confirm'>
-          <span>
-            Accuse this suspect? This uses 1 of your {attemptsLeft} {attemptsLeft === 1 ? 'attempt' : 'attempts'} left.
-          </span>
-          <button className='accuse-btn' onClick={confirmAccuse} disabled={busy}>Yes, accuse</button>
-          <button onClick={() => setConfirming(false)} disabled={busy}>Cancel</button>
+        // asked right where the buttons are, naming the suspect, before an attempt is used
+        <div className={`accuse-confirm ${attemptsLeft === 1 ? 'last-attempt' : ''}`} role='alertdialog' aria-label={`Accuse ${suspectName}?`}>
+          <span className='accuse-confirm-icon' aria-hidden='true'>⚠</span>
+          <div className='accuse-confirm-text'>
+            <strong>Accuse {suspectName}?</strong>
+            <span>
+              {attemptsLeft === 1
+                ? "This is your last attempt. If you're wrong, the case closes."
+                : `This uses 1 of your ${attemptsLeft} attempts.`}
+            </span>
+          </div>
+          <div className='accuse-confirm-actions'>
+            <button className='accuse-cancel' onClick={cancelAccuse} disabled={busy}>Cancel</button>
+            <button className='accuse-btn' onClick={confirmAccuse} disabled={busy} autoFocus>
+              {busy ? 'Accusing…' : 'Yes, accuse'}
+            </button>
+          </div>
         </div>
       ) : (
-        <>
-          <button className='accuse-btn' onClick={() => { setOutcome(null); setConfirming(true) }}>🔍 Accuse</button>
-          {attemptsLeft != null && <span className='attempts-left'> Attempts left: {attemptsLeft}</span>}
-        </>
+        <div className='accuse-row'>
+          <button className='accuse-btn' onClick={startAccuse}>🔍 Accuse</button>
+          {attemptsLeft != null && (
+            <div className='attempts-left' title={`${attemptsLeft} of ${maxAttempts} attempts left`}>
+              <span className='attempts-label'>Attempts</span>
+              <span className='attempts-dots'>
+                {Array.from({ length: maxAttempts || attemptsLeft }, (_, i) => (
+                  <span key={i} className={`attempt-dot ${i < attemptsLeft ? 'left' : 'used'}`} />
+                ))}
+              </span>
+            </div>
+          )}
+        </div>
       )}
     </div>
   )
@@ -393,7 +422,7 @@ function SuspectCard({ suspect, evidence }) {
                 setMessages={setMessages}
                 onClose={close}
               />
-              <AccuseBar suspectId={suspect._id} />
+              <AccuseBar suspectId={suspect._id} suspectName={suspect.name} />
             </>
           }
         />
