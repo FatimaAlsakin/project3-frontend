@@ -324,6 +324,10 @@ nav a{
 .accuse-msg.correct { color: #1e8449; }
 .accuse-msg.wrong { color: #c0392b; }
 
+.notyf {
+    z-index: 200000 !important;
+}
+
 .culprit-reveal {
     display: flex;
     align-items: center;

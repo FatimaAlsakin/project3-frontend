@@ -5,6 +5,9 @@ export const notyf = new Notyf({
   position: { x: 'right', y: 'top' },
   duration: 3500,
   dismissible: true,
+  types: [
+    { type: 'warning', background: '#b9770e', icon: false },
+  ],
 })
 
 export function errorMessage(err, fallback = 'Something went wrong, try again.') {

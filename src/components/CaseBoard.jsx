@@ -334,14 +334,6 @@ function AccuseBar({ suspectId }) {
 
   return (
     <div className='accuse-bar'>
-      {outcome?.isCorrect && <p className='accuse-msg correct'>✅ Case solved! You caught the culprit.</p>}
-      {outcome && !outcome.error && !outcome.isCorrect && (
-        <p className='accuse-msg wrong'>
-          {outcome.attemptsLeft === 0 ? '❌ Wrong suspect. That was your last attempt.' : '❌ Wrong suspect. Keep investigating.'}
-        </p>
-      )}
-      {outcome?.error && <p className='accuse-msg wrong'>{outcome.error}</p>}
-
       {solved ? (
         <SolvedReveal culprit={outcome?.answer || progress.answer} />
       ) : failed ? (
