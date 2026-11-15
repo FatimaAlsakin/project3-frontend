@@ -14,7 +14,7 @@ function SloveAttepmt({user}) {
   const [ evidance, setEvidence ] = useState([])
    const [selectedSuspect , setselectedSuspect]= useState("")
    const [result, setResult] = useState(null)
-   const [progress, setProgress] = useState({ solved: false, failed: false, attemptsLeft: null, maxAttempts: null })
+   const [progress, setProgress] = useState({ solved: false, failed: false, attemptsLeft: null, maxAttempts: null, answer: null })
    const { solved, failed } = progress
    const locked = solved || failed
 
@@ -37,12 +37,13 @@ function SloveAttepmt({user}) {
         let outcome
         try {
           const response = await postAttemps(cId, { susbectId: suspectId })
-          outcome = { isCorrect: response.isCorrect, attemptsLeft: response.attemptsLeft }
+          outcome = { isCorrect: response.isCorrect, attemptsLeft: response.attemptsLeft, answer: response.answer }
           setProgress(prev => ({
             ...prev,
             solved: response.isCorrect,
             failed: !response.isCorrect && response.attemptsLeft === 0,
             attemptsLeft: response.attemptsLeft,
+            answer: response.answer || null,
           }))
         } catch (err) {
           outcome = { error: err.response?.data?.message || "Something went wrong, try again." }

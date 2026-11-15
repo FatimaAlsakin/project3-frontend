@@ -284,6 +284,38 @@ function SuspectChat({ suspect, evidence = [], messages, setMessages, onClose })
   )
 }
 
+function CulpritReveal({ culprit }) {
+  return (
+    <div className='culprit-reveal'>
+      <span className='stamp stamp-failed culprit-stamp'>Case closed</span>
+      {culprit && (
+        <div className='culprit-info'>
+          {culprit.imageUrl && <img src={culprit.imageUrl} alt={culprit.name} draggable={false} />}
+          <div>
+            <span className='culprit-label'>The culprit was</span>
+            <strong className='culprit-name'>{culprit.name}</strong>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SolvedReveal({ culprit }) {
+  return (
+    <div className='culprit-reveal'>
+      <span className='stamp stamp-solved culprit-stamp'>Solved</span>
+      <div className='culprit-info solved'>
+        {culprit?.imageUrl && <img src={culprit.imageUrl} alt={culprit.name} draggable={false} />}
+        <div>
+          <span className='culprit-label'>Your team accused</span>
+          <strong className='solved-text'>{culprit ? culprit.name : 'the right suspect'}</strong>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function AccuseBar({ suspectId }) {
   const { onAccuse, progress } = useContext(BoardContext)
   const { solved, failed, attemptsLeft } = progress
@@ -311,9 +343,9 @@ function AccuseBar({ suspectId }) {
       {outcome?.error && <p className='accuse-msg wrong'>{outcome.error}</p>}
 
       {solved ? (
-        !outcome?.isCorrect && <p className='accuse-msg'>Your team already solved this case.</p>
+        <SolvedReveal culprit={outcome?.answer || progress.answer} />
       ) : failed ? (
-        !outcome && <p className='accuse-msg'>Your team has no attempts left.</p>
+        <CulpritReveal culprit={outcome?.answer || progress.answer} />
       ) : confirming ? (
         <div className='accuse-confirm'>
           <span>
@@ -516,7 +548,14 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
             <div className='board-status'>
               {interactive && (
                 progress.solved ? <span className='stamp stamp-solved'>Solved</span>
-                : progress.failed ? <span className='stamp stamp-failed'>Case closed</span>
+                : progress.failed ? (
+                  <>
+                    <span className='stamp stamp-failed'>Case closed</span>
+                    {progress.answer && (
+                      <span className='paper-label small'>The culprit was {progress.answer.name}</span>
+                    )}
+                  </>
+                )
                 : progress.attemptsLeft != null && (
                   <span className='paper-label small'>Attempts left: {progress.attemptsLeft} of {progress.maxAttempts}</span>
                 )

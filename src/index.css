@@ -324,6 +324,55 @@ nav a{
 .accuse-msg.correct { color: #1e8449; }
 .accuse-msg.wrong { color: #c0392b; }
 
+.culprit-reveal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.culprit-stamp {
+    font-size: 1em;
+    rotate: -4deg;
+}
+
+.culprit-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.culprit-info img {
+    width: 46px;
+    height: 46px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #c0392b;
+}
+
+.culprit-label {
+    display: block;
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #777;
+}
+
+.solved-text {
+    font-size: 1.1em;
+    color: #1e8449;
+}
+
+.culprit-info.solved img {
+    border-color: #1e8449;
+}
+
+.culprit-name {
+    font-size: 1.1em;
+    color: #c0392b;
+}
+
 .solved-banner {
     margin: 10px;
     padding: 10px 14px;
