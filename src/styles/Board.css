@@ -406,6 +406,30 @@
   color: #555;
 }
 
+.witness-paper {
+  border-left-color: #2e5f8a;
+  rotate: 1deg;
+}
+
+.witness-stamp {
+  border-color: #2e5f8a;
+  color: #2e5f8a;
+}
+
+.witness-profile {
+  border-left-color: #2e5f8a;
+}
+
+.witness-statement {
+  margin: 4px 0 0;
+  padding: 8px 14px;
+  border-left: 3px solid #2e5f8a;
+  background: #f5f8fb;
+  font-style: italic;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
 .flip-card {
   position: relative;
   width: 180px;

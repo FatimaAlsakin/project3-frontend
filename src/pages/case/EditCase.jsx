@@ -30,6 +30,7 @@ function EditCase() {
 
     const [suspects, setSuspects] = useState([])
     const [evidence, setEvidence] = useState([])
+    const [witnesses, setWitnesses] = useState([])
     const [solutionIndex, setSolutionIndex] = useState(null)
 
     const [originalSuspectIds, setOriginalSuspectIds] = useState([])
@@ -68,6 +69,9 @@ function EditCase() {
                     }
                 })
                 setCaseImageUrl(foundCase.imageUrl || '')
+                setWitnesses((foundCase.witnesses || []).map(({ _id, name, age, role, statement, imageUrl }) => ({
+                    _id, name: name || '', age: age ?? '', role: role || '', statement: statement || '', imageUrl: imageUrl || ''
+                })))
                 setVictimImageUrl(foundCase.victim?.imageUrl || '')
 
                 setSuspects(foundSuspects.map(({ _id, name, relation, motive, alibi, relationTell, motiveTell, alibiTell, imageUrl }) => ({
@@ -108,6 +112,7 @@ function EditCase() {
 
             await putCase(cId, {
                 ...formData,
+                ...witnessFormData(),
                 solutionSuspect: solutionIndex === null ? null : savedSuspects[solutionIndex]._id
             })
 
@@ -140,6 +145,30 @@ function EditCase() {
     function handleChange(event){
     const value = event.target.type === 'file' ? event.target.files[0] : event.target.value
     setFormData({...formData, [event.target.name]:value})
+    }
+
+    function addWitnessRow(){
+        setWitnesses([...witnesses, { name: '', age: '', role: '', statement: '' }])
+    }
+
+    function removeWitnessRow(index){
+        setWitnesses(witnesses.filter((witness, i) => i !== index))
+    }
+
+    function handleWitnessChange(index, event){
+        const updatedWitnesses = [...witnesses]
+        const value = event.target.type === 'file' ? event.target.files[0] : event.target.value
+        updatedWitnesses[index] = {...updatedWitnesses[index], [event.target.name]:value}
+        setWitnesses(updatedWitnesses)
+    }
+
+    // the witness photos go as their own files (witnessImage_0, witnessImage_1, ...)
+    function witnessFormData(){
+        const data = { witnesses: witnesses.map(({ image, ...witness }) => witness), witnessCount: witnesses.length }
+        witnesses.forEach((witness, index) => {
+            if (witness.image) data[`witnessImage_${index}`] = witness.image
+        })
+        return data
     }
 
     function addSuspectRow(){
@@ -378,6 +407,69 @@ function EditCase() {
             accept="image/*"
             onChange={handleChange}/>
             </div>
+            </section>
+            <section className="caseInformation">
+            <div className="caseInformationHeader">
+                <h2>WITNESSES</h2>
+                <span>OPTIONAL</span>
+            </div>
+            {witnesses.map((witness, index) =>
+                <div className='suspectCard' key={index}>
+                    <div className='caseField'>
+                    <label htmlFor={`witnessName${index}`}>Witness Name: </label>
+                    <input
+                    type="text"
+                    id={`witnessName${index}`}
+                    name="name"
+                    required
+                    onChange={(event) => handleWitnessChange(index, event)}
+                    value={witness.name}/>
+                    </div>
+                    <div className='caseField'>
+                    <label htmlFor={`witnessAge${index}`}>Age: </label>
+                    <input
+                    type="number"
+                    id={`witnessAge${index}`}
+                    name="age"
+                    min="0"
+                    onChange={(event) => handleWitnessChange(index, event)}
+                    value={witness.age}/>
+                    </div>
+                    <div className='caseField'>
+                    <label htmlFor={`witnessRole${index}`}>Role: </label>
+                    <input
+                    type="text"
+                    id={`witnessRole${index}`}
+                    name="role"
+                    placeholder="e.g. Housekeeper"
+                    onChange={(event) => handleWitnessChange(index, event)}
+                    value={witness.role}/>
+                    </div>
+                    <div className='caseField'>
+                    <label htmlFor={`witnessStatement${index}`}>Statement: </label>
+                    <textarea
+                    id={`witnessStatement${index}`}
+                    name="statement"
+                    onChange={(event) => handleWitnessChange(index, event)}
+                    value={witness.statement}/>
+                    </div>
+                    <div className='caseField'>
+                    {witness.imageUrl && !witness.image && (
+                        <img src={witness.imageUrl} alt={witness.name} width="100" />
+                    )}
+                    <br />
+                    <label htmlFor={`witnessImage${index}`}>{witness.imageUrl ? 'Replace Witness Picture: ' : 'Witness Picture: '}</label>
+                    <input
+                    type="file"
+                    id={`witnessImage${index}`}
+                    name="image"
+                    accept="image/*"
+                    onChange={(event) => handleWitnessChange(index, event)}/>
+                    </div>
+                    <button className="removeSuspectBtn" type="button" onClick={() => removeWitnessRow(index)}>Remove Witness</button>
+                </div>
+            )}
+            <button className="addSuspectBtn" type="button" onClick={addWitnessRow}>+ Add Witness</button>
             </section>
             <div className="caseExtras">
             <section className="suspectsSection">
