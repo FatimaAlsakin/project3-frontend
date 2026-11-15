@@ -31,7 +31,7 @@ Casebook is a full-stack multiplayer detective game where every player is a dete
 
 
 ## Database Design
-<img src="assets/ERD.png">
+<img src="assets/EDR.drawio.png">
 
 
 ## Routes

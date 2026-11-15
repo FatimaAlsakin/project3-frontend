@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap');
+
+.dashboardPage {
+    min-height: calc(100vh - 76px);
+    padding: 40px 4%;
+    box-sizing: border-box;
+    background-color: #101014;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.dashboardPage h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 48px;
+    margin: 0 0 30px;
+    text-transform: uppercase;
+}
+
+.dashboardSection {
+    background-color: #111;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 25px 30px;
+    margin-bottom: 30px;
+}
+
+.dashboardSection h2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 30px;
+    margin: 0 0 15px;
+    color: #c84a62;
+    text-transform: uppercase;
+}
+
+.dashboardSection h3 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 26px;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+}
+
+.dashboardTeamHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 8px;
+}
+
+.dashboardTeamHeader h3 {
+    margin: 0;
+}
+
+/* same look as the Leave Team button on the My Team page */
+.dashboardButton {
+    padding: 12px 22px;
+    background-color: #330c12;
+    border: 1px solid #b60027;
+    border-radius: 7px;
+    color: #ffb6b6;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.dashboardButton:hover {
+    background-color: #a60022;
+    color: white;
+}
+
+.dashboardMembers {
+    margin: 0 0 20px;
+    color: #ccc;
+}
+
+.dashboardSubheading {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 15px 0 12px;
+    color: #e5dce0;
+}
+
+.dashboardPastTeam {
+    padding: 20px 0;
+    border-top: 1px solid #333;
+}
+
+.dashboardPastTeam:first-of-type {
+    border-top: none;
+    padding-top: 0;
+}
+
+.dashboardCases {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.dashboardCaseCard {
+    display: block;
+    padding: 18px;
+    background-color: #1b171b;
+    border: 1px solid #383333;
+    border-radius: 8px;
+    color: white;
+    text-decoration: none;
+    transition: border-color 0.3s;
+}
+
+.dashboardCaseCard:hover {
+    border-color: #c84a62;
+}
+
+.dashboardCaseCard h4 {
+    margin: 0 0 8px;
+    font-size: 17px;
+}
+
+.dashboardCaseCard p {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: #bbb;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.dashboardMeta {
+    font-size: 12px;
+    color: #c84a62;
+}
+
+.dashboardEmpty {
+    color: #999;
+}
+
+.dashboardEmpty a {
+    color: #c84a62;
+}

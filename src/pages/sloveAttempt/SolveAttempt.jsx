@@ -6,6 +6,7 @@ import CaseBoard from '../../components/CaseBoard'
 import TeamChat, { ChatTab } from '../../components/TeamChat'
 import { LiveCaseProvider } from '../../components/LiveCase'
 import '../../styles/SolveAttempt.css'
+import { notyf } from '../../utils/notify'
 
 function SloveAttepmt({user}) {
 
@@ -13,9 +14,9 @@ function SloveAttepmt({user}) {
   const [ suspects, setSuspects ] = useState([])
   const [ evidance, setEvidence ] = useState([])
    const [selectedSuspect , setselectedSuspect]= useState("")
-   const [result, setResult] = useState(null)
-   const [progress, setProgress] = useState({ solved: false, failed: false, attemptsLeft: null, maxAttempts: null })
+   const [progress, setProgress] = useState({ solved: false, failed: false, attemptsLeft: null, maxAttempts: null, answer: null, accusedSuspects: [] })
    const { solved, failed } = progress
+   const accusedSuspects = progress.accusedSuspects || []
    const locked = solved || failed
 
    // is the team chat open? remembered in this browser
@@ -37,25 +38,35 @@ function SloveAttepmt({user}) {
         let outcome
         try {
           const response = await postAttemps(cId, { susbectId: suspectId })
-          outcome = { isCorrect: response.isCorrect, attemptsLeft: response.attemptsLeft }
+          outcome = { isCorrect: response.isCorrect, attemptsLeft: response.attemptsLeft, answer: response.answer }
           setProgress(prev => ({
             ...prev,
             solved: response.isCorrect,
             failed: !response.isCorrect && response.attemptsLeft === 0,
             attemptsLeft: response.attemptsLeft,
+            answer: response.answer || null,
+            accusedSuspects: response.accusedSuspects || prev.accusedSuspects,
           }))
+          if (!response.isCorrect) setselectedSuspect(prev => (prev === suspectId ? "" : prev))
         } catch (err) {
           outcome = { error: err.response?.data?.message || "Something went wrong, try again." }
           loadProgress()
         }
-        setResult(outcome)
+        showResultToast(outcome)
         return outcome
+      }
+
+      function showResultToast(outcome) {
+        if (outcome.error) notyf.error(outcome.error)
+        else if (outcome.isCorrect) notyf.success("Case solved! You caught the culprit.")
+        else if (outcome.attemptsLeft === 0) notyf.error("Wrong suspect. That was your last attempt.")
+        else notyf.error(`Wrong suspect. Keep investigating. ${outcome.attemptsLeft} ${outcome.attemptsLeft === 1 ? 'attempt' : 'attempts'} left.`)
       }
 
       async function handleSolveAttempt(event){
         event.preventDefault()
         if (!selectedSuspect) {
-          setResult({ error: "Pick a suspect first." })
+          notyf.error("Pick a suspect first.")
           return
         }
         accuse(selectedSuspect)
@@ -92,8 +103,6 @@ function SloveAttepmt({user}) {
 
       <main className='solve-main'>
       {Case ? (
-        // the board shows the title, attempts left and solved / failed stamp itself;
-        // everything inside <CaseBoard> goes along the bottom of the board
         <CaseBoard Case={Case} suspects={suspects} evidence={evidance} interactive user={user} onAccuse={accuse} progress={progress}>
           <button type='button' className='board-btn board-back' onClick={() => navigate(-1)} aria-label='Go back'>‹</button>
 
@@ -111,24 +120,18 @@ function SloveAttepmt({user}) {
               value={selectedSuspect}
               id="suspect"
               disabled={locked}
-              onChange={e => { setselectedSuspect(e.target.value); setResult(null) }}>
+              onChange={e => setselectedSuspect(e.target.value)}>
               <option value="" disabled>-- choose a suspect --</option>
-              {suspects.map((oneSuspect) =>
-                <option key={oneSuspect._id} value={oneSuspect._id}>{oneSuspect.name}</option>
-              )}
+              {suspects.map((oneSuspect) => {
+                const alreadyAccused = accusedSuspects.includes(oneSuspect._id)
+                return (
+                  <option key={oneSuspect._id} value={oneSuspect._id} disabled={alreadyAccused}>
+                    {oneSuspect.name}{alreadyAccused ? ' (already accused)' : ''}
+                  </option>
+                )
+              })}
             </select>
             <button className='board-btn danger' disabled={locked}>🔍 Accuse</button>
-
-            {result?.error && <p className='accuse-result'>{result.error}</p>}
-            {result && !result.error && (
-              <p className='accuse-result'>
-                {result.isCorrect
-                  ? "✅ Case solved! You caught the culprit."
-                  : result.attemptsLeft === 0
-                    ? "❌ Wrong suspect. That was your last attempt."
-                    : "❌ Wrong suspect. Keep investigating."}
-              </p>
-            )}
           </form>
         </CaseBoard>
       ) : (

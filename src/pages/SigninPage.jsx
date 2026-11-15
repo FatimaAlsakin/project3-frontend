@@ -26,7 +26,7 @@ const SignInForm = ({ setUser }) => {
 
       setUser(signedInUser);
       notyf.success('Welcome back!');
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       notyf.error(errorMessage(err, 'Unable to sign in. Please try again.'));
     }

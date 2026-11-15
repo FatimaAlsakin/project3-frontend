@@ -206,8 +206,7 @@ function SuspectChat({ suspect, evidence = [], messages, setMessages, onClose })
 
   const remainingQuestions = questions.filter(q => !messages.some(m => m.key === q.key))
 
-  const knowsName = messages.some(m => m.key === "name" && m.sender === "suspect")
-  const displayName = knowsName ? suspect.name : "The suspect"
+  const displayName = suspect.name
 
   function handleSend(question) {
     setMessages(prev => [...prev, { key: question.key, text: question.question, sender: "user" }])
@@ -226,8 +225,8 @@ function SuspectChat({ suspect, evidence = [], messages, setMessages, onClose })
   return (
     <>
       <div className='suspect-header'>
-        {suspect.imageUrl && <img src={suspect.imageUrl} alt={displayName} draggable={false} />}
-        <h3>{displayName}</h3>
+        {suspect.imageUrl && <img src={suspect.imageUrl} alt={suspect.name} draggable={false} />}
+        <h3>{suspect.name}</h3>
         <button className='close-btn' onClick={onClose} aria-label='Close'>✕</button>
       </div>
 
@@ -285,14 +284,56 @@ function SuspectChat({ suspect, evidence = [], messages, setMessages, onClose })
   )
 }
 
-function AccuseBar({ suspectId }) {
+function CulpritReveal({ culprit }) {
+  return (
+    <div className='culprit-reveal'>
+      <span className='stamp stamp-failed culprit-stamp'>Case closed</span>
+      {culprit && (
+        <div className='culprit-info'>
+          {culprit.imageUrl && <img src={culprit.imageUrl} alt={culprit.name} draggable={false} />}
+          <div>
+            <span className='culprit-label'>The culprit was</span>
+            <strong className='culprit-name'>{culprit.name}</strong>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SolvedReveal({ culprit }) {
+  return (
+    <div className='culprit-reveal'>
+      <span className='stamp stamp-solved culprit-stamp'>Solved</span>
+      <div className='culprit-info solved'>
+        {culprit?.imageUrl && <img src={culprit.imageUrl} alt={culprit.name} draggable={false} />}
+        <div>
+          <span className='culprit-label'>Your team accused</span>
+          <strong className='solved-text'>{culprit ? culprit.name : 'the right suspect'}</strong>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function AccuseBar({ suspectId, suspectName }) {
   const { onAccuse, progress } = useContext(BoardContext)
-  const { solved, failed, attemptsLeft } = progress
+  const { solved, failed, attemptsLeft, maxAttempts } = progress
+  const alreadyAccused = (progress.accusedSuspects || []).includes(suspectId)
   const [confirming, setConfirming] = useState(false)
   const [busy, setBusy] = useState(false)
   const [outcome, setOutcome] = useState(null)
 
   if (!onAccuse) return null
+
+  function startAccuse() {
+    setOutcome(null)
+    setConfirming(true)
+  }
+
+  function cancelAccuse() {
+    setConfirming(false)
+  }
 
   async function confirmAccuse() {
     setBusy(true)
@@ -303,31 +344,48 @@ function AccuseBar({ suspectId }) {
 
   return (
     <div className='accuse-bar'>
-      {outcome?.isCorrect && <p className='accuse-msg correct'>✅ Case solved! You caught the culprit.</p>}
-      {outcome && !outcome.error && !outcome.isCorrect && (
-        <p className='accuse-msg wrong'>
-          {outcome.attemptsLeft === 0 ? '❌ Wrong suspect. That was your last attempt.' : '❌ Wrong suspect. Keep investigating.'}
-        </p>
-      )}
-      {outcome?.error && <p className='accuse-msg wrong'>{outcome.error}</p>}
-
       {solved ? (
-        !outcome?.isCorrect && <p className='accuse-msg'>Your team already solved this case.</p>
+        <SolvedReveal culprit={outcome?.answer || progress.answer} />
       ) : failed ? (
-        !outcome && <p className='accuse-msg'>Your team has no attempts left.</p>
+        <CulpritReveal culprit={outcome?.answer || progress.answer} />
       ) : confirming ? (
-        <div className='accuse-confirm'>
-          <span>
-            Accuse this suspect? This uses 1 of your {attemptsLeft} {attemptsLeft === 1 ? 'attempt' : 'attempts'} left.
-          </span>
-          <button className='accuse-btn' onClick={confirmAccuse} disabled={busy}>Yes, accuse</button>
-          <button onClick={() => setConfirming(false)} disabled={busy}>Cancel</button>
+        // asked right where the buttons are, naming the suspect, before an attempt is used
+        <div className={`accuse-confirm ${attemptsLeft === 1 ? 'last-attempt' : ''}`} role='alertdialog' aria-label={`Accuse ${suspectName}?`}>
+          <span className='accuse-confirm-icon' aria-hidden='true'>⚠</span>
+          <div className='accuse-confirm-text'>
+            <strong>Accuse {suspectName}?</strong>
+            <span>
+              {attemptsLeft === 1
+                ? "This is your last attempt. If you're wrong, the case closes."
+                : `This uses 1 of your ${attemptsLeft} attempts.`}
+            </span>
+          </div>
+          <div className='accuse-confirm-actions'>
+            <button className='accuse-cancel' onClick={cancelAccuse} disabled={busy}>Cancel</button>
+            <button className='accuse-btn' onClick={confirmAccuse} disabled={busy} autoFocus>
+              {busy ? 'Accusing…' : 'Yes, accuse'}
+            </button>
+          </div>
         </div>
       ) : (
-        <>
-          <button className='accuse-btn' onClick={() => { setOutcome(null); setConfirming(true) }}>🔍 Accuse</button>
-          {attemptsLeft != null && <span className='attempts-left'> Attempts left: {attemptsLeft}</span>}
-        </>
+        <div className='accuse-row'>
+          {alreadyAccused ? (
+            // wrong guess already used on this suspect, pick someone else
+            <button className='accuse-btn' disabled title='Your team already accused this suspect'>✗ Already accused</button>
+          ) : (
+            <button className='accuse-btn' onClick={startAccuse}>🔍 Accuse</button>
+          )}
+          {attemptsLeft != null && (
+            <div className='attempts-left' title={`${attemptsLeft} of ${maxAttempts} attempts left`}>
+              <span className='attempts-label'>Attempts</span>
+              <span className='attempts-dots'>
+                {Array.from({ length: maxAttempts || attemptsLeft }, (_, i) => (
+                  <span key={i} className={`attempt-dot ${i < attemptsLeft ? 'left' : 'used'}`} />
+                ))}
+              </span>
+            </div>
+          )}
+        </div>
       )}
     </div>
   )
@@ -349,8 +407,9 @@ function SuspectCard({ suspect, evidence }) {
         <div id={domId} ref={cardRef} className={`suspect-thumb ${open ? 'is-open' : ''} ${stringClass}`}>
           <div className='polaroid taped'>
             {suspect.imageUrl
-              ? <img src={suspect.imageUrl} alt='Suspect' draggable={false} />
+              ? <img src={suspect.imageUrl} alt={suspect.name} draggable={false} />
               : <span className='suspect-thumb-empty'>?</span>}
+            <span className='polaroid-caption'>{suspect.name}</span>
           </div>
         </div>
       </Draggable>
@@ -369,7 +428,7 @@ function SuspectCard({ suspect, evidence }) {
                 setMessages={setMessages}
                 onClose={close}
               />
-              <AccuseBar suspectId={suspect._id} />
+              <AccuseBar suspectId={suspect._id} suspectName={suspect.name} />
             </>
           }
         />
@@ -516,7 +575,14 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
             <div className='board-status'>
               {interactive && (
                 progress.solved ? <span className='stamp stamp-solved'>Solved</span>
-                : progress.failed ? <span className='stamp stamp-failed'>Case closed</span>
+                : progress.failed ? (
+                  <>
+                    <span className='stamp stamp-failed'>Case closed</span>
+                    {progress.answer && (
+                      <span className='paper-label small'>The culprit was {progress.answer.name}</span>
+                    )}
+                  </>
+                )
                 : progress.attemptsLeft != null && (
                   <span className='paper-label small'>Attempts left: {progress.attemptsLeft} of {progress.maxAttempts}</span>
                 )
