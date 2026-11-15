@@ -14,9 +14,19 @@ function EditCase() {
         location: '',
         incidentDate: '',
         difficulty: 'medium',
-        status: 'draft'
+        status: 'draft',
+        victim: {
+            name: '',
+            age: '',
+            occupation: '',
+            maritalStatus: '',
+            knownFor: '',
+            personality: '',
+            background: ''
+        }
     })
     const [caseImageUrl, setCaseImageUrl] = useState('')
+    const [victimImageUrl, setVictimImageUrl] = useState('')
 
     const [suspects, setSuspects] = useState([])
     const [evidence, setEvidence] = useState([])
@@ -46,9 +56,19 @@ function EditCase() {
                     location: foundCase.location,
                     incidentDate: foundCase.incidentDate ? foundCase.incidentDate.slice(0, 10) : '',
                     difficulty: foundCase.difficulty,
-                    status: foundCase.status
+                    status: foundCase.status,
+                    victim: {
+                        name: foundCase.victim?.name || '',
+                        age: foundCase.victim?.age ?? '',
+                        occupation: foundCase.victim?.occupation || '',
+                        maritalStatus: foundCase.victim?.maritalStatus || '',
+                        knownFor: foundCase.victim?.knownFor || '',
+                        personality: foundCase.victim?.personality || '',
+                        background: foundCase.victim?.background || ''
+                    }
                 })
                 setCaseImageUrl(foundCase.imageUrl || '')
+                setVictimImageUrl(foundCase.victim?.imageUrl || '')
 
                 setSuspects(foundSuspects.map(({ _id, name, relation, motive, alibi, relationTell, motiveTell, alibiTell, imageUrl }) => ({
                     _id, name, relation, motive, alibi,
@@ -111,6 +131,10 @@ function EditCase() {
         } catch (err) {
             notyf.error(errorMessage(err, 'Something went wrong saving the case'))
         }
+    }
+
+    function handleVictimChange(event){
+    setFormData({...formData, victim: {...formData.victim, [event.target.name]: event.target.value}})
     }
 
     function handleChange(event){
@@ -263,6 +287,97 @@ function EditCase() {
             name="image"
             accept="image/*"
             onChange={handleChange}/> </div>
+            </section>
+            <section className="caseInformation">
+            <div className="caseInformationHeader">
+                <h2>THE VICTIM</h2>
+                <span>OPTIONAL</span>
+            </div>
+            <div className="caseRow">
+            <div className="caseField">
+            <label htmlFor="victimName">Name: </label>
+            <input
+            type="text"
+            id="victimName"
+            name="name"
+            onChange={handleVictimChange}
+            value={formData.victim.name}/>
+            </div>
+            <div className="caseField">
+            <label htmlFor="victimAge">Age: </label>
+            <input
+            type="number"
+            min="0"
+            id="victimAge"
+            name="age"
+            onChange={handleVictimChange}
+            value={formData.victim.age}/>
+            </div>
+            </div>
+
+            <div className="caseRow">
+            <div className="caseField">
+            <label htmlFor="victimOccupation">Occupation: </label>
+            <input
+            type="text"
+            id="victimOccupation"
+            name="occupation"
+            onChange={handleVictimChange}
+            value={formData.victim.occupation}/>
+            </div>
+            <div className="caseField">
+            <label htmlFor="victimMaritalStatus">Marital Status: </label>
+            <input
+            type="text"
+            id="victimMaritalStatus"
+            name="maritalStatus"
+            onChange={handleVictimChange}
+            value={formData.victim.maritalStatus}/>
+            </div>
+            </div>
+
+            <div className="caseField">
+            <label htmlFor="victimKnownFor">Known For: </label>
+            <input
+            type="text"
+            id="victimKnownFor"
+            name="knownFor"
+            onChange={handleVictimChange}
+            value={formData.victim.knownFor}/>
+            </div>
+
+            <div className="caseField">
+            <label htmlFor="victimPersonality">Personality: </label>
+            <input
+            type="text"
+            id="victimPersonality"
+            name="personality"
+            onChange={handleVictimChange}
+            value={formData.victim.personality}/>
+            </div>
+
+            <div className="caseField">
+            <label htmlFor="victimBackground">Background: </label>
+            <textarea
+            id="victimBackground"
+            name="background"
+            onChange={handleVictimChange}
+            value={formData.victim.background}/>
+            </div>
+
+            <div className="caseField">
+            {victimImageUrl && !formData.victimImage && (
+                <img src={victimImageUrl} alt={formData.victim.name || 'Victim'} width="150" />
+            )}
+            <br />
+            <label htmlFor="victimImage">{victimImageUrl ? 'Replace Victim Picture: ' : 'Victim Picture: '}</label>
+            <input
+            type="file"
+            id="victimImage"
+            name="victimImage"
+            accept="image/*"
+            onChange={handleChange}/>
+            </div>
             </section>
             <div className="caseExtras">
             <section className="suspectsSection">

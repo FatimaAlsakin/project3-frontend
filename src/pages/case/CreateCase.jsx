@@ -14,7 +14,16 @@ function CreateCase() {
         location: '',
         incidentDate: '',
         difficulty: 'medium',
-        status: 'draft'
+        status: 'draft',
+        victim: {
+            name: '',
+            age: '',
+            occupation: '',
+            maritalStatus: '',
+            knownFor: '',
+            personality: '',
+            background: ''
+        }
     })
 
     const [suspects, setSuspects] = useState([])
@@ -40,6 +49,10 @@ function CreateCase() {
         } catch (err) {
             notyf.error(errorMessage(err, 'Something went wrong creating the case'))
         }
+    }
+
+    function handleVictimChange(event){
+    setFormData({...formData, victim: {...formData.victim, [event.target.name]: event.target.value}})
     }
 
     function handleChange(event){
@@ -188,6 +201,93 @@ function CreateCase() {
             type="file"
             id="caseImage"
             name="image"
+            accept="image/*"
+            onChange={handleChange}/>
+            </div>
+            </section>
+            <section className="caseInformation">
+            <div className="caseInformationHeader">
+                <h2>THE VICTIM</h2>
+                <span>OPTIONAL</span>
+            </div>
+            <div className="caseRow">
+            <div className="caseField">
+            <label htmlFor="victimName">Name: </label>
+            <input
+            type="text"
+            id="victimName"
+            name="name"
+            onChange={handleVictimChange}
+            value={formData.victim.name}/>
+            </div>
+            <div className="caseField">
+            <label htmlFor="victimAge">Age: </label>
+            <input
+            type="number"
+            min="0"
+            id="victimAge"
+            name="age"
+            onChange={handleVictimChange}
+            value={formData.victim.age}/>
+            </div>
+            </div>
+
+            <div className="caseRow">
+            <div className="caseField">
+            <label htmlFor="victimOccupation">Occupation: </label>
+            <input
+            type="text"
+            id="victimOccupation"
+            name="occupation"
+            onChange={handleVictimChange}
+            value={formData.victim.occupation}/>
+            </div>
+            <div className="caseField">
+            <label htmlFor="victimMaritalStatus">Marital Status: </label>
+            <input
+            type="text"
+            id="victimMaritalStatus"
+            name="maritalStatus"
+            onChange={handleVictimChange}
+            value={formData.victim.maritalStatus}/>
+            </div>
+            </div>
+
+            <div className="caseField">
+            <label htmlFor="victimKnownFor">Known For: </label>
+            <input
+            type="text"
+            id="victimKnownFor"
+            name="knownFor"
+            onChange={handleVictimChange}
+            value={formData.victim.knownFor}/>
+            </div>
+
+            <div className="caseField">
+            <label htmlFor="victimPersonality">Personality: </label>
+            <input
+            type="text"
+            id="victimPersonality"
+            name="personality"
+            onChange={handleVictimChange}
+            value={formData.victim.personality}/>
+            </div>
+
+            <div className="caseField">
+            <label htmlFor="victimBackground">Background: </label>
+            <textarea
+            id="victimBackground"
+            name="background"
+            onChange={handleVictimChange}
+            value={formData.victim.background}/>
+            </div>
+
+            <div className="caseField">
+            <label htmlFor="victimImage">Victim Picture: </label>
+            <input
+            type="file"
+            id="victimImage"
+            name="victimImage"
             accept="image/*"
             onChange={handleChange}/>
             </div>

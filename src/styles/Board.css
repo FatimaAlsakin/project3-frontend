@@ -223,6 +223,7 @@
 
 .suspect-thumb.is-open,
 .case-card.is-open,
+.victim-card.is-open,
 .flip-card.is-open {
   visibility: hidden;
 }
@@ -334,6 +335,75 @@
 .case-meta {
   margin: 4px 0 0;
   font-size: 0.85em;
+}
+
+.victim-card {
+  position: relative;
+  width: 320px;
+  max-width: 100%;
+  cursor: pointer;
+}
+
+.victim-paper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--board-paper);
+  box-shadow: 2px 6px 14px rgba(0, 0, 0, 0.35);
+  border-left: 5px solid var(--board-red);
+  rotate: -1.2deg;
+}
+
+.victim-card-photo {
+  flex-shrink: 0;
+  width: 90px;
+  height: 110px;
+  object-fit: cover;
+  border: 5px solid #fff;
+  box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.3);
+  filter: grayscale(0.4);
+}
+
+.victim-card-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background: #e6dcc6;
+  font-size: 2em;
+  color: #8a7a62;
+}
+
+.victim-card-info {
+  min-width: 0;
+}
+
+.victim-card-stamp {
+  display: inline-block;
+  margin-bottom: 4px;
+  padding: 1px 8px;
+  border: 2px solid var(--board-red);
+  border-radius: 3px;
+  color: var(--board-red);
+  font-family: 'Oswald', 'Montserrat', sans-serif;
+  font-size: 0.75em;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  rotate: -3deg;
+}
+
+.victim-card-info .victim-name {
+  font-family: 'Caveat', cursive;
+  font-size: 1.6em;
+  line-height: 1.1;
+}
+
+.victim-card-line {
+  margin: 2px 0 0;
+  font-size: 0.85em;
+  color: #555;
 }
 
 .flip-card {

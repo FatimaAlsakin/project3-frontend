@@ -111,6 +111,62 @@ nav a{
     font-size: 1.05em;
 }
 
+.victim-profile {
+    margin: 0 0 12px;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-left: 4px solid #c0392b;
+    border-radius: 4px;
+}
+
+.victim-profile p.victim-label {
+    margin: 0 0 2px;
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #8a7a62;
+}
+
+.victim-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.victim-photo {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 3px solid #fff;
+    outline: 1px solid #ccc;
+    box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.25);
+    filter: grayscale(0.4);
+}
+
+.victim-name {
+    margin: 0;
+    font-size: 1.25em;
+}
+
+.victim-profile p.victim-sub {
+    margin: 0 0 8px;
+    font-size: 0.85em;
+    color: #777;
+}
+
+.victim-facts {
+    margin: 0 0 10px;
+    padding-left: 18px;
+}
+
+.victim-profile p.victim-background {
+    margin: 0;
+    white-space: pre-line;
+}
+
 @keyframes suspect-fly {
     from { transform: translate(var(--dx), var(--dy)) scale(var(--s)); }
     to   { transform: translate(0, 0) scale(1); }

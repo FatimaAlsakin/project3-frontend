@@ -102,6 +102,84 @@ function formatIncidentDate(value) {
   return isNaN(date) ? value : date.toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+const VICTIM_FACTS = [
+  ['occupation', 'Occupation'],
+  ['maritalStatus', 'Marital status'],
+  ['knownFor', 'Known for'],
+  ['personality', 'Personality'],
+]
+
+const victimSubtitle = (victim) => `Victim${victim.age != null ? ` · ${victim.age} years old` : ''}`
+
+function VictimCard({ victim }) {
+  const cardRef = useRef(null)
+  const { domId, onDrag, interactive, handleClick, stringClass, position, onMoved } = useBoardCard('victim')
+  const { open, from, openCard, close } = useOpenCard(cardRef)
+  const dragProps = useClickNotDrag(cardRef, () => {
+    if (!handleClick() && interactive) openCard()
+  }, onMoved)
+
+  return (
+    <>
+      <Draggable nodeRef={cardRef} position={position} onDrag={onDrag} {...dragProps}>
+        <div id={domId} ref={cardRef} className={`victim-card ${open ? 'is-open' : ''} ${stringClass}`}>
+          <div className='victim-paper taped'>
+            {victim.imageUrl
+              ? <img className='victim-card-photo' src={victim.imageUrl} alt={victim.name} draggable={false} />
+              : <span className='victim-card-photo victim-card-empty'>?</span>}
+            <div className='victim-card-info'>
+              <span className='victim-card-stamp'>Victim</span>
+              <h4 className='victim-name'>{victim.name}</h4>
+              {victim.age != null && <p className='victim-card-line'>{victim.age} years old</p>}
+              {victim.occupation && <p className='victim-card-line'>{victim.occupation}</p>}
+            </div>
+          </div>
+        </div>
+      </Draggable>
+
+      {open && (
+        <CardModal
+          from={from}
+          onClose={close}
+          front={victim.imageUrl && <img src={victim.imageUrl} alt={victim.name} draggable={false} />}
+          back={
+            <>
+              <CardModalHeader title={victim.name} onClose={close} />
+              <div className='card-modal-body'>
+                <VictimProfile victim={victim} />
+              </div>
+            </>
+          }
+        />
+      )}
+    </>
+  )
+}
+
+function VictimProfile({ victim }) {
+  return (
+    <div className='victim-profile'>
+      <div className='victim-heading'>
+        {victim.imageUrl && <img className='victim-photo' src={victim.imageUrl} alt={victim.name} draggable={false} />}
+        <p className='victim-sub'>{victimSubtitle(victim)}</p>
+      </div>
+
+      <ul className='victim-facts'>
+        {VICTIM_FACTS.filter(([key]) => victim[key]).map(([key, label]) => (
+          <li key={key}><b>{label}:</b> {victim[key]}</li>
+        ))}
+      </ul>
+
+      {victim.background && (
+        <>
+          <p className='victim-label'>Background</p>
+          <p className='victim-background'>{victim.background}</p>
+        </>
+      )}
+    </div>
+  )
+}
+
 function CaseCard({ Case }) {
   const cardRef = useRef(null)
   const { domId, onDrag, interactive, handleClick, stringClass, position, onMoved } = useBoardCard('case')
@@ -502,8 +580,11 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
     .map(e => ({ a: suspectIdOf(e), b: e._id, auto: true }))
     .filter(s => s.a && suspects.some(suspect => suspect._id === s.a))
 
+  const hasVictim = Boolean(Case.victim?.name)
+
   const onBoard = new Set([
     'case',
+    ...(hasVictim ? ['victim'] : []),
     ...suspects.map(s => s._id),
     ...evidence.map(e => e._id),
     ...boardNotes.notes.map(n => n._id),
@@ -623,6 +704,7 @@ function CaseBoard({ Case, suspects, evidence, interactive = false, user = null,
 
           <div className='board-column board-center'>
             <CaseCard Case={Case} />
+            {hasVictim && <VictimCard victim={Case.victim} />}
           </div>
 
           <div className='board-column board-right'>
