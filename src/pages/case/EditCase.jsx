@@ -236,7 +236,6 @@ function EditCase() {
             value={formData.status}>
                 <option value="draft">Draft</option>
                 <option value="open">Open</option>
-                <option value="solved">Solved</option>
                 <option value="closed">Closed</option>
             </select>
             </div>
