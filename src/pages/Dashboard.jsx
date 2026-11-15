@@ -14,12 +14,35 @@ function SolvedCases({ solvedCases }) {
   return (
     <div className="dashboardCases">
       {solvedCases.map(({ case: oneCase, solvedBy, solvedAt }) => (
-        <Link to={`/case/${oneCase._id}`} className="dashboardCaseCard" key={oneCase._id}>
+        <Link to={`/case/${oneCase._id}/solve`} className="dashboardCaseCard" key={oneCase._id}>
           <h4>{oneCase.title}</h4>
           <p>{oneCase.description}</p>
           <span className="dashboardMeta">
             Solved {formatDate(solvedAt)}{solvedBy ? ` by ${solvedBy}` : ""}
           </span>
+          <br />
+          <p className="dashboardStatus solved">Solved</p>
+        </Link>
+      ))}
+    </div>
+  )
+}
+
+function FailedCases({ failedCases = [] }) {
+  if (failedCases.length === 0) {
+    return <p className="dashboardEmpty">No closed cases.</p>
+  }
+  return (
+    <div className="dashboardCases">
+      {failedCases.map(({ case: oneCase, closedBy, closedAt }) => (
+        <Link to={`/case/${oneCase._id}/solve`} className="dashboardCaseCard closed" key={oneCase._id}>
+          <h4>{oneCase.title}</h4>
+          <p>{oneCase.description}</p>
+          <span className="dashboardMeta">
+            Closed {formatDate(closedAt)}{closedBy ? ` after a wrong guess by ${closedBy}` : ""}
+          </span>
+          <br />
+          <p className="dashboardStatus closed">Closed</p>
         </Link>
       ))}
     </div>
@@ -69,8 +92,10 @@ function Dashboard({ user }) {
                 <p className="dashboardMembers">
                   Members: {currentTeam.members.map((member) => member.username).join(", ")}
                 </p>
-                <h4 className="dashboardSubheading">Cases solved with this team ({currentTeam.solvedCases.length})</h4>
+                <h4 className="dashboardSubheading">This team cases:  ({currentTeam.solvedCases.length})</h4>
                 <SolvedCases solvedCases={currentTeam.solvedCases} />
+                <br />
+                <FailedCases failedCases={currentTeam.failedCases} />
               </>
             ) : (
               <p className="dashboardEmpty">
@@ -82,12 +107,14 @@ function Dashboard({ user }) {
           {pastTeams.length > 0 && (
             <section className="dashboardSection">
               <h2>Past Teams</h2>
-              {pastTeams.map(({ team, leftAt, solvedCases }, index) => (
+              {pastTeams.map(({ team, leftAt, solvedCases, failedCases }, index) => (
                 <div className="dashboardPastTeam" key={team?._id || index}>
                   <h3>{team?.name || "Deleted team"}</h3>
                   {leftAt && <p className="dashboardMeta">Left {formatDate(leftAt)}</p>}
                   <h4 className="dashboardSubheading">Cases solved with this team ({solvedCases.length})</h4>
                   <SolvedCases solvedCases={solvedCases} />
+                  <h4 className="dashboardSubheading">Cases closed with this team ({failedCases?.length || 0})</h4>
+                  <FailedCases failedCases={failedCases} />
                 </div>
               ))}
             </section>
