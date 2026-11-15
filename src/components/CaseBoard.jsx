@@ -319,6 +319,7 @@ function SolvedReveal({ culprit }) {
 function AccuseBar({ suspectId, suspectName }) {
   const { onAccuse, progress } = useContext(BoardContext)
   const { solved, failed, attemptsLeft, maxAttempts } = progress
+  const alreadyAccused = (progress.accusedSuspects || []).includes(suspectId)
   const [confirming, setConfirming] = useState(false)
   const [busy, setBusy] = useState(false)
   const [outcome, setOutcome] = useState(null)
@@ -368,7 +369,12 @@ function AccuseBar({ suspectId, suspectName }) {
         </div>
       ) : (
         <div className='accuse-row'>
-          <button className='accuse-btn' onClick={startAccuse}>🔍 Accuse</button>
+          {alreadyAccused ? (
+            // wrong guess already used on this suspect, pick someone else
+            <button className='accuse-btn' disabled title='Your team already accused this suspect'>✗ Already accused</button>
+          ) : (
+            <button className='accuse-btn' onClick={startAccuse}>🔍 Accuse</button>
+          )}
           {attemptsLeft != null && (
             <div className='attempts-left' title={`${attemptsLeft} of ${maxAttempts} attempts left`}>
               <span className='attempts-label'>Attempts</span>
